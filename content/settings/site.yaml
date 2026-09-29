@@ -1,0 +1,52 @@
+# Source: current site + client briefing (2026-09-29). "[mock]" = still a placeholder.
+businessName: M.E Projects Pty Ltd
+shortName: M.E Projects
+tagline: "An experienced builder you can trust [mock]"   # from current site hero - confirm
+experience: 20+ years, residential & commercial
+abn: 65 640 158 069
+licences:
+  - authority: QBCC (QLD)
+    number: "15139741"
+    class: "[mock]"                                    # Q18 - licence class not given
+  - authority: NSW Fair Trading
+    number: 473008C
+insurance: Fully insured
+warranty: As per QBCC guidelines
+
+contactName: Mark Nelson
+phone: 0451 241 400
+phoneHref: "+61451241400"
+email: mark@me-projects.com.au
+enquiryEmail: mark@me-projects.com.au                  # Q23
+preferredContact: [phone, email]                       # Q25
+address:
+  street: 453A Golden Four Drive                       # kept for schema.org / Google only
+  suburb: Tugun
+  state: QLD
+  postcode: "4224"
+  showStreet: false                                    # Q1 - show suburb/region only
+
+hours:                                                 # Q3 - "7:00 - 4:00"; days not given
+  - days: "Monday - Friday [mock]"
+    time: 7:00am - 4:00pm
+
+serviceAreas:                                          # Q10 - "all of the above"
+  - Tugun
+  - Palm Beach
+  - Burleigh Heads
+  - Coolangatta
+  - Tweed Heads
+  - Northern NSW
+
+consultation:                                          # Q9 - prefers to advertise paid consultation before design
+  paid: true
+  summary: Paid design consultation before any plans are drawn up.
+  price: "Price on request [mock]"
+
+social:                                                # Q26 - left blank
+  facebook: "[mock]"
+  instagram: "[mock]"
+googleBusinessProfile: "[mock]"                        # Q36 - exists, Mark manages it; need the URL
+
+brand:
+  primaryColour: navy                                  # Q28 - "navy blue is our work shirt colour", open to refresh

@@ -1,0 +1,99 @@
+---
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import { getServices, getSite, mock, serviceAreaSentence } from "../../lib/content";
+
+const site = await getSite();
+const services = await getServices();
+---
+
+<Base
+  title="Services"
+  description={`Extensions, new builds, decks, bathrooms, home renovations and commercial fit-outs across ${serviceAreaSentence(site.serviceAreas)}.`}
+>
+  <PageHead
+    title="Services"
+    lead={`From a new bathroom to a whole new home, every job is run by the same hands-on team across ${serviceAreaSentence(site.serviceAreas)}.`}
+  />
+
+  <section class="container services" aria-label="All services">
+    {
+      services.map((s, i) => (
+        <a href={`/services/${s.id}`} class:list={["svc", i === 0 && "svc--lead"]} data-reveal>
+          <div class="svc__img ratio zoom">
+            <Image
+              src={s.data.image}
+              alt=""
+              widths={[375, 750]}
+              sizes={i === 0 ? "(max-width: 48rem) 100vw, 60vw" : "(max-width: 48rem) 100vw, 45vw"}
+              class="cover"
+            />
+          </div>
+          <div class="svc__body">
+            <h2>{s.data.title}</h2>
+            <p set:html={mock(s.data.summary)} />
+            <span class="link">About {s.data.title.toLowerCase()}</span>
+          </div>
+        </a>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .services {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2.5rem, 5vw, 4.5rem) clamp(1.5rem, 3vw, 2.5rem);
+    padding-bottom: var(--section);
+  }
+
+  .svc {
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+    text-decoration: none;
+  }
+
+  .svc__img {
+    aspect-ratio: 3 / 2;
+  }
+
+  .svc--lead {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: end;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+  }
+
+  .svc--lead .svc__img {
+    aspect-ratio: 16 / 10;
+  }
+
+  .svc__body {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+  }
+
+  .svc h2 {
+    font-size: var(--fs-lg);
+  }
+
+  .svc--lead h2 {
+    font-size: var(--fs-xl);
+  }
+
+  .svc p {
+    color: var(--text-muted);
+    max-width: 46ch;
+  }
+
+  @media (max-width: 48rem) {
+    .services,
+    .svc--lead {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

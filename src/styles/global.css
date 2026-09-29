@@ -1,0 +1,499 @@
+/* ==========================================================================
+   M.E Projects design system
+   Brand: workwear navy + render white + concrete. Photography carries the warmth.
+   Type: Archivo (variable width). Expanded for display, normal for reading.
+   Shape: 2px radius on anything interactive or boxed, 0 on photographs.
+   Motion: one easing for the whole site (--ease).
+   ========================================================================== */
+
+@import "@fontsource-variable/archivo/wdth.css";
+
+:root {
+  color-scheme: light;
+
+  /* Palette */
+  --navy-950: #0b1626;
+  --navy-900: #13243b;
+  --navy-800: #1c3150;
+  --navy-700: #28416a;
+  --render: #f6f6f3;
+  --concrete: #e4e6e2;
+  --concrete-deep: #d5d8d3;
+  --graphite: #4a5361;
+
+  /* Semantic tokens */
+  --bg: var(--render);
+  --surface: var(--concrete);
+  --surface-raised: #fbfbf9;
+  --text: #1a2433;
+  --heading: var(--navy-900);
+  --text-muted: var(--graphite);
+  --line: #c9cdc7;
+  --line-strong: #9aa2a8;
+  --accent: var(--navy-900);
+  --accent-hover: var(--navy-700);
+  --on-accent: #f6f6f3;
+  --board-bg: var(--navy-900);
+  --board-text: #eef1f4;
+  --board-muted: #a9b6c6;
+  --board-line: rgb(238 241 244 / 0.16);
+  --mock: #8a4b00;
+  --mock-bg: rgb(255 196 0 / 0.18);
+  --danger: #a3261b;
+  --success: #1e6b3a;
+
+  /* Type */
+  --font: "Archivo Variable", "Archivo", system-ui, sans-serif;
+  --wide: 125%;
+  --semi: 112%;
+  --fs-sm: 0.875rem;
+  --fs-base: 1.0625rem;
+  --fs-md: 1.3125rem;
+  --fs-lg: clamp(1.5rem, 1.25rem + 0.9vw, 1.875rem);
+  --fs-xl: clamp(2rem, 1.45rem + 2vw, 2.875rem);
+  --fs-2xl: clamp(2.5rem, 1.6rem + 3.4vw, 4.25rem);
+
+  /* Space */
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --section: clamp(5rem, 9vw, 8.5rem);
+  --max: 80rem;
+  --radius: 2px;
+  --header-h: 4rem;
+
+  /* Depth: shadows are tinted navy, never black */
+  --shadow: 0 1px 2px rgb(19 36 59 / 0.06), 0 18px 40px -18px rgb(19 36 59 / 0.22);
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 220ms;
+
+  /* Layers */
+  --z-header: 30;
+  --z-menu: 40;
+  --z-dialog: 50;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: var(--navy-950);
+    --surface: #111f33;
+    --surface-raised: #16263d;
+    --text: #e3e8ee;
+    --heading: #f1f4f7;
+    --text-muted: #a3afbf;
+    --line: #26374f;
+    --line-strong: #3f5474;
+    --accent: #eef1f4;
+    --accent-hover: #cbd5e1;
+    --on-accent: var(--navy-900);
+    --board-bg: #1a2e4a;
+    --board-line: rgb(238 241 244 / 0.14);
+    --mock: #ffd66b;
+    --mock-bg: rgb(255 196 0 / 0.14);
+    --danger: #ff8a7a;
+    --success: #7fd49b;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 18px 40px -18px rgb(0 0 0 / 0.55);
+  }
+}
+
+/* --------------------------------------------------------------- Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 2rem);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  color: var(--heading);
+  font-stretch: var(--wide);
+  font-weight: 680;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-2xl);
+  line-height: 1.02;
+}
+
+h2 {
+  font-size: var(--fs-xl);
+  line-height: 1.06;
+}
+
+h3 {
+  font-size: var(--fs-lg);
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+::selection {
+  background: var(--navy-900);
+  color: var(--render);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -4rem;
+  z-index: calc(var(--z-header) + 1);
+  padding: 0.75rem 1rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--radius);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Placeholder content (see MOCKS.md). Visible on purpose. */
+mark.mock {
+  background: var(--mock-bg);
+  color: var(--mock);
+  font-size: min(0.72em, 0.95rem);
+  font-weight: 600;
+  font-stretch: 100%;
+  letter-spacing: 0;
+  padding: 0.05em 0.3em;
+  border-radius: var(--radius);
+  white-space: nowrap;
+  vertical-align: 0.12em;
+}
+
+.board mark.mock,
+.bento__cell--navy mark.mock {
+  color: #ffd66b;
+  background: rgb(255 196 0 / 0.16);
+}
+
+/* --------------------------------------------------------------- Layout */
+.container {
+  width: min(100% - 2 * var(--gutter), var(--max));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: var(--section);
+}
+
+.section--tint {
+  background: var(--surface);
+}
+
+.stack > * + * {
+  margin-top: var(--stack, 1.25rem);
+}
+
+.lead {
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 38ch;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.prose {
+  max-width: 65ch;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose h2 {
+  font-size: var(--fs-lg);
+  margin-top: 2em;
+}
+
+.label {
+  font-size: var(--fs-sm);
+  font-stretch: var(--semi);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.section-head {
+  display: grid;
+  gap: 1rem;
+  max-width: 44rem;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+/* --------------------------------------------------------------- Buttons & links */
+.btn {
+  --btn-bg: var(--accent);
+  --btn-fg: var(--on-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 3rem;
+  padding: 0.35rem 0.35rem 0.35rem 1.25rem;
+  border: 1px solid var(--btn-bg);
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: inherit;
+  font-size: 1rem;
+  font-stretch: var(--semi);
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    transform 120ms var(--ease);
+}
+
+.btn:hover {
+  --btn-bg: var(--accent-hover);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Nested icon cell (button-in-button) */
+.btn__icon {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--btn-fg) 14%, transparent);
+  transition: transform var(--dur) var(--ease);
+}
+
+.btn__icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.btn:hover .btn__icon {
+  transform: translate(2px, -2px);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--heading);
+  border-color: var(--line-strong);
+  padding-right: 1.25rem;
+}
+
+.btn--ghost:hover {
+  --btn-bg: color-mix(in srgb, var(--heading) 6%, transparent);
+  border-color: var(--heading);
+}
+
+.btn--light {
+  --btn-bg: var(--board-text);
+  --btn-fg: var(--navy-900);
+}
+
+.btn--light:hover {
+  --btn-bg: #ffffff;
+}
+
+.link {
+  color: var(--heading);
+  font-weight: 600;
+  font-stretch: var(--semi);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--line-strong);
+  transition: text-decoration-color var(--dur) var(--ease);
+}
+
+.link:hover {
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 2px;
+}
+
+/* --------------------------------------------------------------- Photos */
+/* Framed photo: the image sits on a concrete mat like a mounted print. */
+.frame {
+  padding: clamp(0.4rem, 0.8vw, 0.6rem);
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.frame img {
+  width: 100%;
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ratio {
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.ratio--4x3 {
+  aspect-ratio: 4 / 3;
+}
+
+.ratio--3x4 {
+  aspect-ratio: 3 / 4;
+}
+
+.ratio--3x2 {
+  aspect-ratio: 3 / 2;
+}
+
+/* Hover zoom on linked photos (transform only). */
+.zoom img {
+  transition: transform 700ms var(--ease);
+}
+
+a:hover .zoom img,
+.zoom:hover img {
+  transform: scale(1.03);
+}
+
+/* --------------------------------------------------------------- Forms */
+.field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.field label,
+.field legend {
+  font-weight: 600;
+  font-stretch: var(--semi);
+  font-size: 0.95rem;
+  color: var(--heading);
+}
+
+.field .hint {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: var(--heading);
+}
+
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--heading);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--heading) 22%, transparent);
+}
+
+.input[aria-invalid="true"],
+.select[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.error {
+  font-size: var(--fs-sm);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.error:empty {
+  display: none;
+}
+
+/* --------------------------------------------------------------- Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .zoom img,
+  a:hover .zoom img {
+    transform: none !important;
+  }
+}

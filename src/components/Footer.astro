@@ -1,0 +1,140 @@
+---
+import Wordmark from "./Wordmark.astro";
+import { getServices, getSite, isMock } from "../lib/content";
+
+const site = await getSite();
+const services = await getServices();
+const qld = site.licences.find((l) => l.authority.startsWith("QBCC"));
+const nsw = site.licences.find((l) => l.authority.startsWith("NSW"));
+const social = Object.entries(site.social).filter(([, url]) => !isMock(url));
+const legal = [
+  `© ${new Date().getFullYear()} ${site.businessName}.`,
+  `ABN ${site.abn}.`,
+  qld && `QBCC licence ${qld.number}.`,
+  nsw && `NSW licence ${nsw.number}.`,
+]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<footer class="footer">
+  <div class="container footer__grid">
+    <div class="footer__brand">
+      <a href="/" aria-label="M.E Projects home"><Wordmark /></a>
+      <p class="muted">
+        Builders based in {site.address.suburb}, {site.address.state}.<br />
+        {site.experience}.
+      </p>
+    </div>
+
+    <nav aria-label="Services">
+      <h2 class="footer__title">Services</h2>
+      <ul>{services.map((s) => <li><a href={`/services/${s.id}`}>{s.data.title}</a></li>)}</ul>
+    </nav>
+
+    <nav aria-label="Company">
+      <h2 class="footer__title">Company</h2>
+      <ul>
+        <li><a href="/projects">Projects</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/contact">Book a consultation</a></li>
+        {social.map(([name, url]) => <li><a href={url} rel="noopener">{name[0].toUpperCase() + name.slice(1)}</a></li>)}
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="footer__title">Contact</h2>
+      <ul>
+        <li><a href={`tel:${site.phoneHref}`}>{site.phone}</a></li>
+        <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li class="muted">{site.hours.map((h) => h.time).join(", ")}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer__legal">
+    <p>{legal}</p>
+    <p><a href="/privacy-policy">Privacy policy</a></p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: 0 2.5rem;
+    font-size: 0.95rem;
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 2.5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer__brand p {
+    margin-top: 1.25rem;
+    max-width: 30ch;
+  }
+
+  .footer__brand a {
+    text-decoration: none;
+  }
+
+  .footer__title {
+    font-size: var(--fs-sm);
+    font-stretch: 112%;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .footer a {
+    color: var(--heading);
+    text-decoration: none;
+  }
+
+  .footer ul a:hover,
+  .footer__legal a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  .footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  @media (max-width: 56rem) {
+    .footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .footer__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

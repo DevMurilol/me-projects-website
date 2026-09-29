@@ -1,0 +1,14 @@
+# Answers without "[mock]" come from the briefing; the rest must be confirmed with Mark.
+items:
+  - question: How does your design consultation work?
+    answer: "We offer a paid consultation before any design work begins, so we can understand your site, budget and goals and give you honest advice from day one. [mock]"
+  - question: Are you licensed and insured?
+    answer: Yes. M.E Projects is licensed in Queensland (QBCC 15139741) and New South Wales (473008C), and we're fully insured.
+  - question: What warranty do you offer?
+    answer: Our work is covered by warranties as per QBCC guidelines.
+  - question: Which areas do you service?
+    answer: We work across Tugun, Palm Beach, Burleigh Heads, Coolangatta, Tweed Heads and Northern NSW.
+  - question: How long does a typical project take?
+    answer: "A bathroom usually takes 3-4 weeks and a deck 2-3 weeks. Extensions and new builds vary - we'll give you a timeline with your quote. [mock]"
+  - question: Can we stay in the house during the works?
+    answer: "Often, yes. We'll plan the works to keep disruption to a minimum and let you know if there are days you'll need to be out. [mock]"

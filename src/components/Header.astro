@@ -1,0 +1,280 @@
+---
+import { Icon } from "astro-icon/components";
+import Wordmark from "./Wordmark.astro";
+import Button from "./Button.astro";
+import { getSite } from "../lib/content";
+
+const site = await getSite();
+const path = Astro.url.pathname;
+const nav = [
+  { href: "/services", label: "Services" },
+  { href: "/projects", label: "Projects" },
+  { href: "/about", label: "About" },
+  { href: "/faq", label: "FAQ" },
+];
+const current = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header class="header">
+  <div class="container header__bar">
+    <a href="/" class="header__brand" aria-label="M.E Projects home">
+      <Wordmark />
+    </a>
+
+    <nav class="header__nav" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={current(item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <a class="header__phone" href={`tel:${site.phoneHref}`} aria-label={`Call ${site.phone}`}>
+        <Icon name="ph:phone-light" aria-hidden="true" />
+        <span class="header__phone-text">{site.phone}</span>
+      </a>
+      <Button href="/contact" class="header__cta">Book a consultation</Button>
+      <button class="header__toggle" type="button" aria-expanded="false" aria-controls="mobile-menu">
+        <Icon name="ph:list-light" class="icon-open" aria-hidden="true" />
+        <Icon name="ph:x-light" class="icon-close" aria-hidden="true" />
+        <span class="visually-hidden">Menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu" id="mobile-menu" hidden>
+    <nav class="container" aria-label="Mobile">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={current(item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="menu__contact">
+        <Button href="/contact">Book a consultation</Button>
+        <a class="link" href={`tel:${site.phoneHref}`}>Call {site.phone}</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>(".header__toggle");
+  const menu = document.getElementById("mobile-menu");
+  if (toggle && menu) {
+    const set = (open: boolean) => {
+      toggle.setAttribute("aria-expanded", String(open));
+      menu.hidden = !open;
+      document.documentElement.classList.toggle("menu-open", open);
+    };
+    toggle.addEventListener("click", () => set(menu.hidden));
+    document.addEventListener("keydown", (e) => e.key === "Escape" && !menu.hidden && set(false));
+    window.matchMedia("(min-width: 64rem)").addEventListener("change", (e) => e.matches && set(false));
+  }
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    padding-top: 0.75rem;
+  }
+
+  /* Floating bar, detached from the top edge. Blur only lives here (sticky element). */
+  .header__bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: var(--header-h);
+    padding-inline: 1.25rem 0.5rem;
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .header__brand {
+    text-decoration: none;
+    font-size: 1rem;
+  }
+
+  .header__nav {
+    margin-inline: auto;
+  }
+
+  .header__nav ul,
+  .menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .header__nav ul {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .header__nav a {
+    display: block;
+    padding: 0.5rem 0.8rem;
+    color: var(--text-muted);
+    font-stretch: 112%;
+    font-weight: 560;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border-radius: var(--radius);
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .header__nav a:hover {
+    color: var(--heading);
+    background: color-mix(in srgb, var(--heading) 6%, transparent);
+  }
+
+  .header__nav a[aria-current="page"] {
+    color: var(--heading);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.45em;
+  }
+
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .header__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--heading);
+    font-weight: 600;
+    font-stretch: 112%;
+    font-size: 0.95rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header__phone svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  .header__toggle {
+    display: none;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--heading);
+    cursor: pointer;
+  }
+
+  .header__toggle svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .header__toggle .icon-close,
+  .header__toggle[aria-expanded="true"] .icon-open {
+    display: none;
+  }
+
+  .header__toggle[aria-expanded="true"] .icon-close {
+    display: block;
+  }
+
+  /* Mobile menu: no animation (navigation is never animated). */
+  .menu {
+    position: fixed;
+    inset: calc(var(--header-h) + 1.25rem) 0 0;
+    z-index: var(--z-menu);
+    padding-top: 1.5rem;
+    background: var(--bg);
+    overflow-y: auto;
+  }
+
+  .menu a:not(.btn):not(.link) {
+    display: block;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--heading);
+    font-size: var(--fs-lg);
+    font-stretch: 125%;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .menu__contact {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 63.99rem) {
+    .header__nav,
+    .header__cta {
+      display: none;
+    }
+
+    .header__toggle {
+      display: grid;
+    }
+
+    .header__bar {
+      gap: 1rem;
+      padding-right: 0.5rem;
+    }
+
+    .header__actions {
+      margin-left: auto;
+    }
+  }
+
+  /* Small phones: the call link becomes an icon button (calling is the main action on mobile). */
+  @media (max-width: 30rem) {
+    .header__phone {
+      justify-content: center;
+      width: 3rem;
+      height: 3rem;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+    }
+
+    .header__phone svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+
+    .header__phone-text {
+      display: none;
+    }
+
+    .header__actions {
+      gap: 0.5rem;
+    }
+  }
+
+  :global(html.menu-open) {
+    overflow: hidden;
+  }
+</style>

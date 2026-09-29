@@ -1,0 +1,39 @@
+---
+// Standard inner-page header: title + optional lead, left aligned.
+import { mock } from "../lib/content";
+
+interface Props {
+  title: string;
+  lead?: string;
+  back?: { href: string; label: string };
+}
+const { title, lead, back } = Astro.props;
+---
+
+<header class="page-head container">
+  {back && <a class="page-head__back link" href={back.href}>{back.label}</a>}
+  <h1 set:html={mock(title)} />
+  {lead && <p class="lead" set:html={mock(lead)} />}
+  <slot />
+</header>
+
+<style>
+  .page-head {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+    padding-block: clamp(3rem, 7vw, 6rem) clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .page-head h1 {
+    max-width: 18ch;
+  }
+
+  .page-head .lead {
+    max-width: 52ch;
+  }
+
+  .page-head__back {
+    font-size: var(--fs-sm);
+  }
+</style>

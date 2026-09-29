@@ -1,0 +1,84 @@
+---
+import { Icon } from "astro-icon/components";
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import { getFaq, mock, plain } from "../lib/content";
+
+const items = await getFaq();
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: items.map((i) => ({
+    "@type": "Question",
+    name: i.question,
+    acceptedAnswer: { "@type": "Answer", text: plain(i.answer) },
+  })),
+};
+---
+
+<Base title="FAQ" description="Answers about consultations, licences, warranty, service areas and timeframes.">
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <PageHead title="Questions we get asked" lead="If yours isn't here, give us a call. We're happy to talk it through." />
+
+  <section class="container faq">
+    {
+      items.map((item, i) => (
+        <details class="faq__item" open={i === 0}>
+          <summary>
+            <span>{item.question}</span>
+            <Icon name="ph:plus-light" aria-hidden="true" />
+          </summary>
+          <p set:html={mock(item.answer)} />
+        </details>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .faq {
+    max-width: 52rem;
+    margin-inline: max(var(--gutter), calc((100% - var(--max)) / 2));
+    border-top: 1px solid var(--line);
+  }
+
+  .faq__item {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .faq summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    color: var(--heading);
+    font-size: var(--fs-md);
+    font-stretch: 112%;
+    font-weight: 620;
+    line-height: 1.3;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq summary svg {
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .faq__item[open] summary svg {
+    transform: rotate(45deg);
+  }
+
+  .faq__item p {
+    padding-bottom: 1.75rem;
+    max-width: 60ch;
+    color: var(--text-muted);
+  }
+</style>

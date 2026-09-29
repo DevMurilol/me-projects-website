@@ -1,0 +1,352 @@
+---
+import { Image, getImage } from "astro:assets";
+import { getEntry, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { getProjects, getTestimonials, mock, plain, year, type Project } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, next: projects[(i + 1) % projects.length] },
+  }));
+}
+
+const { project, next } = Astro.props as { project: Project; next: Project };
+const { Content } = await render(project);
+const service = await getEntry(project.data.service);
+const review = (await getTestimonials()).find((t) => t.data.project?.id === project.id);
+const alt = plain(project.data.title);
+
+// Full-size URLs for the lightbox (source photos are 750px wide).
+const gallery = await Promise.all(
+  project.data.images.map(async (img, i) => ({
+    img,
+    full: (await getImage({ src: img, width: img.width, format: "webp" })).src,
+    alt: `${alt}, photo ${i + 1}`,
+  })),
+);
+---
+
+<Base title={plain(project.data.title)} description={project.data.summary}>
+  <article>
+    <header class="container proj-head">
+      <a class="link proj-head__back" href="/projects">All projects</a>
+      <h1 set:html={mock(project.data.title)} />
+      <p class="lead" set:html={mock(project.data.summary)} />
+      <dl class="proj-meta">
+        <div><dt>Location</dt><dd>{project.data.location}</dd></div>
+        <div>
+          <dt>Service</dt>
+          <dd><a href={`/services/${service?.id}`}>{service?.data.title}</a></dd>
+        </div>
+        <div><dt>Completed</dt><dd>{year(project.data.date)}</dd></div>
+      </dl>
+    </header>
+
+    <div class="container proj-cover">
+      <div class="frame">
+        <Image
+          src={project.data.coverImage}
+          alt={plain(project.data.summary)}
+          widths={[375, 750]}
+          sizes="(max-width: 48rem) 100vw, 60vw"
+          loading="eager"
+        />
+      </div>
+      <div class="prose proj-story" data-reveal>
+        <Content />
+      </div>
+    </div>
+
+    {
+      project.data.beforeImage && project.data.afterImage && (
+        <section class="section section--tint" aria-labelledby="ba-heading">
+          <div class="container">
+            <h2 id="ba-heading" class="proj-sub">Before and after</h2>
+            <div class="ba" data-reveal>
+              <figure>
+                <Image src={project.data.beforeImage} alt={`${alt} during the build`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
+                <figcaption>Before</figcaption>
+              </figure>
+              <figure>
+                <Image src={project.data.afterImage} alt={`${alt} finished`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
+                <figcaption>After</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      gallery.length > 0 && (
+        <section class="section" aria-labelledby="gallery-heading">
+          <div class="container">
+            <h2 id="gallery-heading" class="proj-sub">Photos</h2>
+            <ul class="gallery" data-reveal>
+              {gallery.map((g, i) => (
+                <li>
+                  <button type="button" class="gallery__btn zoom" data-full={g.full} data-alt={g.alt} data-index={i}>
+                    <Image src={g.img} alt={g.alt} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 33vw" class="cover" />
+                    <span class="visually-hidden">Open photo {i + 1} full size</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      review && (
+        <section class="container proj-review" aria-label="Client review">
+          <blockquote>
+            <p set:html={`&ldquo;${mock(review.data.text)}&rdquo;`} />
+          </blockquote>
+          <p class="muted">
+            <span set:html={mock(review.data.name)} />, {review.data.location}
+          </p>
+        </section>
+      )
+    }
+
+    <nav class="container proj-next" aria-label="Next project">
+      <span class="muted">Next project</span>
+      <a href={`/projects/${next.id}`} set:html={mock(next.data.title)} />
+    </nav>
+  </article>
+
+  <dialog class="lightbox" aria-label="Photo viewer">
+    <img alt="" />
+    <div class="lightbox__bar">
+      <button type="button" data-prev>Previous</button>
+      <span data-pos></span>
+      <button type="button" data-next>Next</button>
+      <button type="button" data-close>Close</button>
+    </div>
+  </dialog>
+</Base>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>(".lightbox");
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>(".gallery__btn")];
+  if (dialog && buttons.length) {
+    const img = dialog.querySelector("img")!;
+    const pos = dialog.querySelector<HTMLElement>("[data-pos]")!;
+    let index = 0;
+    const show = (i: number) => {
+      index = (i + buttons.length) % buttons.length;
+      img.src = buttons[index].dataset.full!;
+      img.alt = buttons[index].dataset.alt!;
+      pos.textContent = `${index + 1} of ${buttons.length}`;
+    };
+    buttons.forEach((b, i) =>
+      b.addEventListener("click", () => {
+        show(i);
+        dialog.showModal();
+      }),
+    );
+    dialog.querySelector("[data-prev]")!.addEventListener("click", () => show(index - 1));
+    dialog.querySelector("[data-next]")!.addEventListener("click", () => show(index + 1));
+    dialog.querySelector("[data-close]")!.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (e) => e.target === dialog && dialog.close());
+    dialog.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") show(index - 1);
+      if (e.key === "ArrowRight") show(index + 1);
+    });
+    dialog.addEventListener("close", () => buttons[index]?.focus());
+  }
+</script>
+
+<style>
+  .proj-head {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+    padding-block: clamp(3rem, 7vw, 6rem) clamp(2rem, 4vw, 3rem);
+  }
+
+  .proj-head h1 {
+    max-width: 20ch;
+  }
+
+  .proj-head__back {
+    font-size: var(--fs-sm);
+  }
+
+  .proj-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 3rem;
+    margin: 0.5rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .proj-meta dt {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .proj-meta dd {
+    margin: 0.2rem 0 0;
+    font-weight: 600;
+    font-stretch: 112%;
+    color: var(--heading);
+  }
+
+  .proj-meta a {
+    text-underline-offset: 0.25em;
+  }
+
+  .proj-cover {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: end;
+    padding-bottom: var(--section);
+  }
+
+  .proj-story {
+    font-size: var(--fs-md);
+    line-height: 1.55;
+  }
+
+  .proj-sub {
+    font-size: var(--fs-lg);
+    margin-bottom: 2rem;
+  }
+
+  .ba {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .ba figure {
+    margin: 0;
+  }
+
+  .ba figcaption {
+    margin-top: 0.6rem;
+    font-weight: 600;
+    font-stretch: 112%;
+    color: var(--heading);
+  }
+
+  .gallery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: 1rem;
+  }
+
+  .gallery__btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--surface);
+    cursor: zoom-in;
+  }
+
+  .proj-review {
+    padding-block: 0 var(--section);
+  }
+
+  .proj-review blockquote {
+    margin: 0 0 1rem;
+    max-width: 34ch;
+    color: var(--heading);
+    font-size: var(--fs-lg);
+    font-stretch: 112%;
+    font-weight: 520;
+    line-height: 1.3;
+  }
+
+  .proj-next {
+    display: grid;
+    gap: 0.5rem;
+    padding-block: 3rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .proj-next a {
+    color: var(--heading);
+    font-size: var(--fs-xl);
+    font-stretch: 125%;
+    font-weight: 680;
+    letter-spacing: -0.018em;
+    line-height: 1.06;
+    text-decoration: none;
+  }
+
+  .proj-next a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
+  }
+
+  /* Lightbox */
+  .lightbox {
+    width: min(92vw, 60rem);
+    max-height: 92dvh;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--navy-950);
+    color: #eef1f4;
+  }
+
+  .lightbox::backdrop {
+    background: rgb(11 22 38 / 0.86);
+  }
+
+  .lightbox img {
+    width: 100%;
+    max-height: calc(92dvh - 4rem);
+    object-fit: contain;
+  }
+
+  .lightbox__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .lightbox__bar span {
+    margin-inline: auto;
+    font-size: var(--fs-sm);
+  }
+
+  .lightbox__bar button {
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(238 241 244 / 0.3);
+    border-radius: var(--radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .lightbox__bar button:hover {
+    border-color: #eef1f4;
+  }
+
+  @media (max-width: 52rem) {
+    .proj-cover,
+    .ba {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

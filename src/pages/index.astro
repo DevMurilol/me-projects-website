@@ -1,0 +1,706 @@
+---
+import { Image } from "astro:assets";
+import { getEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+import Button from "../components/Button.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import stair from "../assets/photos/stair-curve.webp";
+import {
+  getAbout,
+  getProjects,
+  getServices,
+  getSite,
+  getTestimonials,
+  isMock,
+  mock,
+  plain,
+  serviceAreaSentence,
+  year,
+} from "../lib/content";
+
+const site = await getSite();
+const about = await getAbout();
+const services = await getServices();
+const projects = await getProjects();
+const testimonials = await getTestimonials();
+
+const qld = site.licences.find((l) => l.authority.startsWith("QBCC"));
+const nsw = site.licences.find((l) => l.authority.startsWith("NSW"));
+
+// Featured story: the project with a before/after pair, otherwise the latest featured one.
+const featured = projects.find((p) => p.data.featured && p.data.beforeImage) ?? projects.find((p) => p.data.featured)!;
+const featuredService = await getEntry(featured.data.service);
+const more = projects.filter((p) => p.data.featured && p.id !== featured.id).slice(0, 3);
+
+// Services bento: the four priority services get photos, the other two are text tiles.
+const [s1, s2, s3, s4, ...rest] = services;
+
+const steps = [
+  {
+    title: "Consultation",
+    text: "A paid consultation on site. We look at your block, plans and budget and give you straight advice.",
+  },
+  {
+    title: "Design and approvals",
+    text: "We work with your designer, or recommend one, and sort out the approvals the job needs. [mock]",
+  },
+  {
+    title: "Build",
+    text: "You deal directly with the people on the tools, with regular updates from start to finish.",
+  },
+  {
+    title: "Handover",
+    text: `A final walkthrough together, with warranty ${site.warranty.charAt(0).toLowerCase()}${site.warranty.slice(1)}.`,
+  },
+];
+---
+
+<Base
+  title={site.shortName}
+  description={`Builders for extensions, new builds, decks and bathrooms across ${serviceAreaSentence(site.serviceAreas)}. Licensed in QLD and NSW.`}
+>
+  <!-- Hero: asymmetric split, the staircase photo carries the page -->
+  <section class="hero container">
+    <div class="hero__copy" data-hero>
+      <h1>Built by the people you talk to.</h1>
+      <p class="lead">
+        Extensions, new builds, decks and bathrooms across the southern Gold Coast and Northern NSW.
+      </p>
+      <div class="hero__ctas">
+        <Button href="/contact">Book a consultation</Button>
+        <Button href="/projects" variant="ghost">View projects</Button>
+      </div>
+    </div>
+    <figure class="hero__photo frame" data-hero-photo>
+      <Image
+        src={stair}
+        alt="Curved rendered staircase with solid timber treads"
+        widths={[375, 750]}
+        sizes="(max-width: 48rem) 100vw, 40vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </figure>
+  </section>
+
+  <!-- Facts: plain credentials, no stat theatrics -->
+  <section class="facts container" aria-label="Credentials">
+    <dl>
+      <div>
+        <dt>{site.experience.split(",")[0]}</dt>
+        <dd>Residential and commercial</dd>
+      </div>
+      {
+        qld && (
+          <div>
+            <dt>QBCC {qld.number}</dt>
+            <dd>Licensed in Queensland</dd>
+          </div>
+        )
+      }
+      {
+        nsw && (
+          <div>
+            <dt>NSW {nsw.number}</dt>
+            <dd>Licensed in New South Wales</dd>
+          </div>
+        )
+      }
+      <div>
+        <dt>{site.insurance}</dt>
+        <dd>Warranty {site.warranty.charAt(0).toLowerCase() + site.warranty.slice(1)}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- Services: asymmetric bento, exactly six cells -->
+  <section class="section" aria-labelledby="services-heading">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <h2 id="services-heading">What we build</h2>
+      </div>
+      <div class="bento" data-reveal>
+        {
+          [s1, s2, s3, s4].map((s, i) => (
+            <a href={`/services/${s.id}`} class:list={["bento__cell bento__cell--photo", `bento__cell--${i + 1}`]}>
+              <div class="bento__img zoom">
+                <Image
+                  src={s.data.image}
+                  alt=""
+                  widths={[375, 750]}
+                  sizes={i === 0 ? "(max-width: 48rem) 100vw, 58vw" : "(max-width: 48rem) 100vw, 33vw"}
+                  class="cover"
+                />
+              </div>
+              <div class="bento__text">
+                <h3>{s.data.title}</h3>
+                <p set:html={mock(s.data.summary)} />
+              </div>
+            </a>
+          ))
+        }
+        {
+          rest.map((s, i) => (
+            <a href={`/services/${s.id}`} class:list={["bento__cell bento__cell--text", i === 1 && "bento__cell--navy"]}>
+              <h3>{s.data.title}</h3>
+              <p set:html={mock(s.data.summary)} />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured project: before and after -->
+  <section class="section section--tint" aria-labelledby="featured-heading">
+    <div class="container feature" data-reveal>
+      <div class="feature__after">
+        <Image
+          src={featured.data.afterImage ?? featured.data.coverImage}
+          alt={plain(featured.data.summary)}
+          widths={[375, 750]}
+          sizes="(max-width: 48rem) 100vw, 50vw"
+          class="cover"
+        />
+      </div>
+      <div class="feature__body">
+        {
+          featured.data.beforeImage && (
+            <figure class="feature__before">
+              <Image src={featured.data.beforeImage} alt="The same room during the build" widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 24vw" />
+              <figcaption>During the build</figcaption>
+            </figure>
+          )
+        }
+        <h2 id="featured-heading" set:html={mock(featured.data.title)} />
+        <p class="lead" set:html={mock(featured.data.summary)} />
+        <dl class="feature__meta">
+          <div><dt>Location</dt><dd>{featured.data.location}</dd></div>
+          <div><dt>Service</dt><dd>{featuredService?.data.title}</dd></div>
+          <div><dt>Completed</dt><dd>{year(featured.data.date)}</dd></div>
+        </dl>
+        <a class="link" href={`/projects/${featured.id}`}>Read the project</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- More work: three covers at different heights -->
+  <section class="section" aria-labelledby="more-heading">
+    <div class="container">
+      <div class="more__head" data-reveal>
+        <h2 id="more-heading">Recent projects</h2>
+        <Button href="/projects" variant="ghost">View projects</Button>
+      </div>
+      <div class="more" data-reveal>
+        {more.map((p, i) => <ProjectCard project={p} ratio={i === 1 ? "3x4" : "4x3"} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Approach: Mark's own words, set large -->
+  <section class="section section--tint" aria-labelledby="approach-heading">
+    <div class="container approach" data-reveal>
+      <h2 id="approach-heading" class="visually-hidden">Our approach</h2>
+      <p class="approach__statement">{about.approach}</p>
+      <ul class="approach__team">
+        {
+          about.team.map((m) => (
+            <li>
+              <span class="approach__name">{m.name}</span>
+              <span class="muted">{m.role}</span>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="link" href="/about">About M.E Projects</a>
+    </div>
+  </section>
+
+  <!-- Process: a real sequence, so numbers are earned -->
+  <section class="section" aria-labelledby="process-heading">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <h2 id="process-heading">How a project runs</h2>
+      </div>
+      <ol class="steps" data-reveal>
+        {
+          steps.map((step, i) => (
+            <li>
+              <span class="steps__num" aria-hidden="true">{i + 1}</span>
+              <h3>{step.title}</h3>
+              <p set:html={mock(step.text)} />
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Reviews: horizontal scroll-snap row -->
+  <section class="section section--tint" aria-labelledby="reviews-heading">
+    <div class="container">
+      <div class="more__head" data-reveal>
+        <h2 id="reviews-heading">What clients say</h2>
+        {
+          isMock(site.googleBusinessProfile) ? (
+            <p class="muted">
+              Google reviews link <mark class="mock">mock</mark>
+            </p>
+          ) : (
+            <a class="link" href={site.googleBusinessProfile} rel="noopener">
+              Read our Google reviews
+            </a>
+          )
+        }
+      </div>
+    </div>
+    <ul class="reviews" data-reveal>
+      {
+        testimonials.map((t) => (
+          <li class="review">
+            <blockquote>
+              <p set:html={`&ldquo;${mock(t.data.text)}&rdquo;`} />
+            </blockquote>
+            <p class="review__who">
+              <span set:html={mock(t.data.name)} />
+              <span class="muted">{t.data.location}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
+
+<style>
+  /* ---------- Hero */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: center;
+    padding-block: clamp(2.5rem, 6vw, 5rem) clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .hero__copy {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  /* Two lines on desktop: "Built by the people / you talk to." */
+  .hero h1 {
+    font-size: clamp(2.5rem, 1.4rem + 3.1vw, 3.6rem);
+  }
+
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .hero__photo {
+    margin: 0;
+    justify-self: end;
+    width: min(100%, 30rem);
+  }
+
+  .hero__photo :global(img) {
+    max-height: calc(100dvh - var(--header-h) - 12rem);
+    width: 100%;
+    object-fit: cover;
+  }
+
+  /* ---------- Facts */
+  .facts dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 2rem;
+    margin: 0;
+    padding-block: 2rem;
+    border-block: 1px solid var(--line);
+  }
+
+  .facts dt {
+    color: var(--heading);
+    font-stretch: 125%;
+    font-weight: 650;
+    font-size: var(--fs-md);
+    line-height: 1.2;
+  }
+
+  .facts dd {
+    margin: 0.3rem 0 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  /* ---------- Bento */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, auto);
+    gap: 1rem;
+  }
+
+  .bento__cell {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    border-radius: var(--radius);
+  }
+
+  .bento__cell--1 {
+    grid-column: span 7;
+    grid-row: span 2;
+  }
+
+  .bento__cell--2 {
+    grid-column: span 5;
+  }
+
+  .bento__cell--3 {
+    grid-column: span 5;
+  }
+
+  .bento__cell--4 {
+    grid-column: 1 / span 4;
+  }
+
+  .bento__cell--text {
+    grid-column: span 4;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: clamp(1.25rem, 2.5vw, 2rem);
+    background: var(--surface);
+    min-height: 13rem;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  .bento__cell--text:hover {
+    background: var(--concrete-deep);
+  }
+
+  .bento__cell--navy {
+    background: var(--board-bg);
+  }
+
+  .bento__cell--navy:hover {
+    background: var(--navy-800);
+  }
+
+  .bento .bento__cell--navy h3 {
+    color: var(--board-text);
+  }
+
+  .bento .bento__cell--navy p {
+    color: var(--board-muted);
+  }
+
+  .bento__img {
+    flex: 1;
+    min-height: 12rem;
+    aspect-ratio: 4 / 3;
+  }
+
+  .bento__cell--1 .bento__img {
+    aspect-ratio: auto;
+    min-height: 22rem;
+  }
+
+  /* Keep the courtyard in frame, not the blurred table in the foreground. */
+  .bento__cell--1 :global(img) {
+    object-position: 50% 22%;
+  }
+
+  .bento__text {
+    display: grid;
+    gap: 0.4rem;
+    padding-top: 1rem;
+  }
+
+  .bento h3 {
+    font-size: var(--fs-md);
+    line-height: 1.2;
+  }
+
+  .bento__cell--1 h3 {
+    font-size: var(--fs-lg);
+  }
+
+  .bento p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 44ch;
+  }
+
+  .bento__cell:hover h3 {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+
+  /* ---------- Featured project */
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: end;
+  }
+
+  .feature__after {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+  }
+
+  .feature__body {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+
+  .feature__before {
+    margin: 0 0 1rem;
+    width: min(100%, 17rem);
+  }
+
+  .feature__before figcaption {
+    margin-top: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .feature__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .feature__meta dt {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .feature__meta dd {
+    margin: 0.2rem 0 0;
+    font-weight: 600;
+    font-stretch: 112%;
+    color: var(--heading);
+  }
+
+  /* ---------- More projects */
+  .more__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+
+  .more {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: start;
+  }
+
+  .more > :global(:nth-child(2)) {
+    margin-top: clamp(0rem, 6vw, 5rem);
+  }
+
+  /* ---------- Approach */
+  .approach {
+    display: grid;
+    gap: 2.5rem;
+    justify-items: start;
+  }
+
+  .approach__statement {
+    max-width: 36ch;
+    color: var(--heading);
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+    font-stretch: 112%;
+    font-weight: 560;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .approach__team {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 4rem;
+  }
+
+  .approach__team li {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .approach__name {
+    font-weight: 650;
+    font-stretch: 125%;
+    color: var(--heading);
+  }
+
+  /* ---------- Steps */
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+  }
+
+  .steps li {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--heading);
+  }
+
+  .steps__num {
+    font-size: var(--fs-xl);
+    font-stretch: 125%;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--heading);
+  }
+
+  .steps h3 {
+    font-size: var(--fs-md);
+  }
+
+  .steps p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  /* ---------- Reviews */
+  .reviews {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem max(var(--gutter), calc((100% - var(--max)) / 2)) 1rem;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(80vw, 24rem);
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: max(var(--gutter), calc((100% - var(--max)) / 2));
+    scrollbar-width: thin;
+  }
+
+  .review {
+    display: grid;
+    align-content: space-between;
+    gap: 2rem;
+    padding: 1.75rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    scroll-snap-align: start;
+  }
+
+  .review blockquote {
+    margin: 0;
+    color: var(--heading);
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .review__who {
+    display: grid;
+    gap: 0.1rem;
+    font-weight: 600;
+    font-stretch: 112%;
+    font-size: 0.95rem;
+  }
+
+  .review__who .muted {
+    font-weight: 400;
+    font-stretch: 100%;
+  }
+
+  /* ---------- Mobile collapse */
+  @media (max-width: 60rem) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+
+    .hero__photo {
+      justify-self: start;
+      width: min(100%, 26rem);
+    }
+
+    .facts dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bento__cell--1,
+    .bento__cell--2,
+    .bento__cell--3,
+    .bento__cell--4,
+    .bento__cell--text {
+      grid-column: span 6;
+      grid-row: auto;
+    }
+
+    .bento__cell--1 {
+      grid-column: 1 / -1;
+    }
+
+    .bento__cell--1 .bento__img {
+      aspect-ratio: 4 / 3;
+      min-height: 0;
+    }
+
+    .feature {
+      grid-template-columns: 1fr;
+    }
+
+    .feature__after {
+      aspect-ratio: 4 / 3;
+    }
+
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 2.5rem;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .bento__cell--1,
+    .bento__cell--2,
+    .bento__cell--3,
+    .bento__cell--4,
+    .bento__cell--text {
+      grid-column: 1 / -1;
+    }
+
+    .more {
+      grid-template-columns: 1fr;
+    }
+
+    .more > :global(:nth-child(2)) {
+      margin-top: 0;
+    }
+
+    .steps {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .facts dl {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,264 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import Button from "../components/Button.astro";
+import { getContactForm, getServices, getSite, mock, serviceAreaSentence } from "../lib/content";
+
+const site = await getSite();
+const form = await getContactForm();
+const services = await getServices();
+const optionsFor = (f: (typeof form.fields)[number]) =>
+  f.optionsFrom === "services" ? services.map((s) => s.data.title) : (f.options ?? []);
+---
+
+<Base
+  title="Book a consultation"
+  description={`Talk to M.E Projects about your extension, new build, deck, bathroom or fit-out. Call ${site.phone} or send an enquiry.`}
+  board={false}
+>
+  <PageHead
+    title="Book a consultation"
+    lead="Tell us about your project and we'll get back to you to arrange a time on site."
+  />
+
+  <section class="container contact">
+    <form class="enquiry" novalidate data-enquiry>
+      {
+        form.fields.map((f) => (
+          <div class:list={["field", (f.type === "textarea" || f.type === "file") && "field--wide"]}>
+            <label for={`f-${f.name}`}>
+              {f.label}
+              {!f.required && <span class="optional"> (optional)</span>}
+            </label>
+            {f.type === "select" ? (
+              <select class="select" id={`f-${f.name}`} name={f.name} required={f.required} aria-describedby={`e-${f.name}`}>
+                <option value="">Choose one</option>
+                {optionsFor(f).map((o) => (
+                  <option value={o.replace(/\s*\[mock\]/i, "")}>{o.replace(/\s*\[mock\]/i, "")}</option>
+                ))}
+              </select>
+            ) : f.type === "textarea" ? (
+              <textarea class="textarea" id={`f-${f.name}`} name={f.name} rows="5" required={f.required} aria-describedby={`e-${f.name}`} />
+            ) : f.type === "file" ? (
+              <>
+                <input
+                  class="input input--file"
+                  type="file"
+                  id={`f-${f.name}`}
+                  name={f.name}
+                  accept={f.accept}
+                  multiple
+                  data-max={f.maxFiles}
+                  aria-describedby={`h-${f.name} e-${f.name}`}
+                />
+                <span class="hint" id={`h-${f.name}`}>Up to {f.maxFiles} photos or PDF plans.</span>
+              </>
+            ) : (
+              <input
+                class="input"
+                type={f.type}
+                id={`f-${f.name}`}
+                name={f.name}
+                required={f.required}
+                autocomplete={f.type === "email" ? "email" : f.type === "tel" ? "tel" : f.name === "name" ? "name" : undefined}
+                aria-describedby={`e-${f.name}`}
+              />
+            )}
+            <span class="error" id={`e-${f.name}`} />
+          </div>
+        ))
+      }
+      <p class="form-note muted">
+        Budget options are placeholders <mark class="mock">mock</mark>. Your details are only used to reply to your
+        enquiry. See our <a class="link" href="/privacy-policy">privacy policy</a>.
+      </p>
+      <div class="field--wide form-actions">
+        <Button type="submit">Send enquiry</Button>
+        <p class="form-status" role="status" aria-live="polite" data-status></p>
+      </div>
+    </form>
+
+    <aside class="direct">
+      <h2 class="direct__title">Prefer to talk?</h2>
+      <a class="direct__phone" href={`tel:${site.phoneHref}`}>{site.phone}</a>
+      <a class="link" href={`mailto:${site.email}`}>{site.email}</a>
+      <dl class="direct__list">
+        <div>
+          <dt>Hours</dt>
+          {site.hours.map((h) => <dd set:html={mock(`${h.days}, ${h.time}`)} />)}
+        </div>
+        <div>
+          <dt>Where we work</dt>
+          <dd>{serviceAreaSentence(site.serviceAreas)}</dd>
+        </div>
+        <div>
+          <dt>Based in</dt>
+          <dd>{site.address.suburb} {site.address.state}</dd>
+        </div>
+      </dl>
+    </aside>
+  </section>
+</Base>
+
+<script>
+  // Validation only. The endpoint (Cloudflare + Resend + Turnstile, see PLANNING.md) is not connected yet.
+  const form = document.querySelector<HTMLFormElement>("[data-enquiry]");
+  const status = document.querySelector<HTMLElement>("[data-status]");
+
+  const messageFor = (el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) => {
+    if (el instanceof HTMLInputElement && el.type === "file") {
+      const max = Number(el.dataset.max || 5);
+      return el.files && el.files.length > max ? `Choose up to ${max} files.` : "";
+    }
+    if (el.validity.valueMissing) return "This field is required.";
+    if (el.validity.typeMismatch && el.type === "email") return "Enter an email address like name@example.com.";
+    return "";
+  };
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    let first: HTMLElement | null = null;
+    form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea").forEach((el) => {
+      const msg = messageFor(el);
+      const error = document.getElementById(`e-${el.name}`);
+      if (error) error.textContent = msg;
+      el.setAttribute("aria-invalid", msg ? "true" : "false");
+      if (msg && !first) first = el;
+    });
+    if (first) {
+      (first as HTMLElement).focus();
+      if (status) status.textContent = "Check the highlighted fields.";
+      return;
+    }
+    if (status) status.textContent = "This preview isn't connected yet. Please call or email us directly.";
+  });
+
+  form?.addEventListener("input", (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el.getAttribute("aria-invalid") === "true" && !messageFor(el)) {
+      el.setAttribute("aria-invalid", "false");
+      const error = document.getElementById(`e-${el.name}`);
+      if (error) error.textContent = "";
+    }
+  });
+</script>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
+    padding-bottom: var(--section);
+  }
+
+  .enquiry {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1.25rem;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    background: var(--surface);
+    border-radius: var(--radius);
+  }
+
+  .field--wide {
+    grid-column: 1 / -1;
+  }
+
+  .optional {
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .input--file {
+    padding: 0.6rem;
+  }
+
+  .input--file::file-selector-button {
+    margin-right: 1rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--heading);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .form-note {
+    grid-column: 1 / -1;
+    font-size: var(--fs-sm);
+  }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+  }
+
+  .form-status {
+    color: var(--heading);
+    font-weight: 600;
+  }
+
+  .direct {
+    display: grid;
+    justify-items: start;
+    gap: 0.75rem;
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+  }
+
+  .direct__title {
+    font-size: var(--fs-md);
+  }
+
+  .direct__phone {
+    color: var(--heading);
+    font-size: var(--fs-xl);
+    font-stretch: 125%;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    text-decoration: none;
+  }
+
+  .direct__list {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.5rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .direct__list dt {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+  }
+
+  .direct__list dd {
+    margin: 0.2rem 0 0;
+    color: var(--heading);
+    font-weight: 600;
+    font-stretch: 112%;
+  }
+
+  @media (max-width: 56rem) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+
+    .direct {
+      position: static;
+      order: -1;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .enquiry {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

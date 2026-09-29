@@ -1,0 +1,48 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import { getSite } from "../lib/content";
+
+const site = await getSite();
+---
+
+<Base title="Privacy policy" description={`How ${site.businessName} collects and uses personal information.`} board={false}>
+  <PageHead title="Privacy policy" lead="Draft for review before launch. [mock]" />
+
+  <section class="container prose policy">
+    <p>
+      {site.businessName} (ABN {site.abn}) respects your privacy. This policy explains how we handle personal information
+      in line with the Australian Privacy Principles in the <em>Privacy Act 1988</em> (Cth).
+    </p>
+    <h2>What we collect</h2>
+    <p>
+      When you send an enquiry we collect your name, phone number, email address, suburb, project details, budget and
+      timeframe, and any photos or plans you choose to upload.
+    </p>
+    <h2>How we use it</h2>
+    <p>
+      We use your information to respond to your enquiry, prepare quotes and carry out work you engage us for. We don't
+      sell your information or use it for unrelated marketing.
+    </p>
+    <h2>Who we share it with</h2>
+    <p>
+      Only with people who help us deliver your project, such as designers, certifiers and trades, and with service
+      providers that host our website and email. They may store data outside Australia.
+    </p>
+    <h2>Website analytics</h2>
+    <p>We use privacy-friendly analytics that don't use cookies or identify individual visitors.</p>
+    <h2>Access and corrections</h2>
+    <p>
+      You can ask to see or correct the information we hold about you, or make a complaint, by emailing
+      <a class="link" href={`mailto:${site.email}`}>{site.email}</a> or calling {site.phone}. If you're not satisfied
+      with our response, you can contact the Office of the Australian Information Commissioner (oaic.gov.au).
+    </p>
+  </section>
+</Base>
+
+<style>
+  .policy {
+    padding-bottom: var(--section);
+    margin-inline: max(var(--gutter), calc((100% - var(--max)) / 2));
+  }
+</style>

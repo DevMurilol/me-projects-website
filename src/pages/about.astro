@@ -1,0 +1,201 @@
+---
+import { Image } from "astro:assets";
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import stairTop from "../assets/photos/stair-curve-top.webp";
+import { getAbout, getSite, isMock, mock } from "../lib/content";
+
+const about = await getAbout();
+const site = await getSite();
+---
+
+<Base title="About" description={`${site.businessName}: ${site.experience}. ${about.intro}`}>
+  <PageHead title={about.headline} lead={about.intro} />
+
+  <section class="container about-story">
+    <div class="frame about-story__photo" data-reveal>
+      <Image src={stairTop} alt="Looking down a curved staircase with timber treads" widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 40vw" />
+    </div>
+    <div class="about-story__text" data-reveal>
+      <p class="about-story__approach">{about.approach}</p>
+      <p class="muted" set:html={mock(about.story)} />
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="values-heading">
+    <div class="container">
+      <h2 id="values-heading" class="about-sub">How we work</h2>
+      <dl class="values" data-reveal>
+        {
+          about.values.map((v) => (
+            <div>
+              <dt>{v.title}</dt>
+              <dd set:html={mock(v.text)} />
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="section container team-creds" aria-label="Team and credentials">
+    <div data-reveal>
+      <h2 class="about-sub">The team</h2>
+      <ul class="team">
+        {
+          about.team.map((m) => (
+            <li>
+              <span class="team__name">{m.name}</span>
+              <span class="muted">{m.role}</span>
+              {isMock(m.photo) && (
+                <span class="muted">
+                  Photo <mark class="mock">mock</mark>
+                </span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div data-reveal>
+      <h2 class="about-sub">Credentials</h2>
+      <dl class="creds">
+        {
+          about.credentials.map((c) => (
+            <div>
+              <dt>{c.label}</dt>
+              <dd set:html={mock(c.value)} />
+            </div>
+          ))
+        }
+        <div>
+          <dt>ABN</dt>
+          <dd>{site.abn}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .about-story {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: center;
+    padding-bottom: var(--section);
+  }
+
+  .about-story__photo {
+    width: min(100%, 28rem);
+  }
+
+  .about-story__text {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .about-story__approach {
+    color: var(--heading);
+    font-size: var(--fs-lg);
+    font-stretch: 112%;
+    font-weight: 540;
+    line-height: 1.3;
+    max-width: 32ch;
+  }
+
+  .about-story__text .muted {
+    max-width: 52ch;
+  }
+
+  .about-sub {
+    font-size: var(--fs-lg);
+    margin-bottom: 2rem;
+  }
+
+  .values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem clamp(2rem, 5vw, 5rem);
+    margin: 0;
+  }
+
+  .values dt {
+    color: var(--heading);
+    font-size: var(--fs-md);
+    font-stretch: 125%;
+    font-weight: 650;
+    padding-top: 1rem;
+    border-top: 2px solid var(--heading);
+  }
+
+  .values dd {
+    margin: 0.6rem 0 0;
+    color: var(--text-muted);
+    max-width: 42ch;
+  }
+
+  .team-creds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2.5rem, 6vw, 6rem);
+  }
+
+  .team {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .team li {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .team__name {
+    color: var(--heading);
+    font-size: var(--fs-md);
+    font-stretch: 125%;
+    font-weight: 650;
+  }
+
+  .creds {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+  }
+
+  .creds div {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .creds dt {
+    color: var(--text-muted);
+  }
+
+  .creds dd {
+    margin: 0;
+    color: var(--heading);
+    font-weight: 600;
+    font-stretch: 112%;
+  }
+
+  @media (max-width: 52rem) {
+    .about-story,
+    .values,
+    .team-creds {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .creds div {
+      grid-template-columns: 1fr;
+      gap: 0.1rem;
+    }
+  }
+</style>

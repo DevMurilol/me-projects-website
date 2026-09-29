@@ -1,0 +1,25 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import Button from "../components/Button.astro";
+---
+
+<Base title="Page not found" description="This page doesn't exist or has moved." noindex>
+  <PageHead title="This page doesn't exist" lead="It may have moved when we rebuilt the site. These are the best places to start.">
+    <div class="actions">
+      <Button href="/">Go to the home page</Button>
+      <a class="link" href="/projects">Projects</a>
+      <a class="link" href="/services">Services</a>
+    </div>
+  </PageHead>
+</Base>
+
+<style>
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+    margin-top: 0.5rem;
+  }
+</style>

@@ -1,0 +1,40 @@
+# Source: current site + client briefing (2026-09-29). "[mock]" = still a placeholder.
+headline: "Building on the southern Gold Coast for over 20 years [mock]"
+intro: >-
+  Renovating can be overwhelming and stressful. At M.E Projects, we understand
+  this and aim to transform the experience into an enjoyable and hassle-free
+  journey without compromising quality or trust.
+# Q5 - Mark's own words
+approach: >-
+  M.E Projects combines hands-on building experience with a personal, practical
+  approach, giving clients direct communication and close attention throughout
+  the job. We focus on quality workmanship, reliable delivery and solutions that
+  suit the project rather than a one-size-fits-all approach.
+story: >-
+  Mark started M.E Projects with a simple idea: treat every home like it's our
+  own. Two decades later we're still a small, hands-on team based in Tugun. [mock]
+values:                                                # condensed from Q5
+  - title: Direct communication
+    text: You deal with the people building your project, from first meeting to handover.
+  - title: Quality workmanship
+    text: Hands-on building experience in every detail of the job.
+  - title: Reliable delivery
+    text: We do what we say, when we say we'll do it.
+  - title: Solutions that suit the project
+    text: No one-size-fits-all approach - every build is planned around your site and needs.
+team:                                                  # Q4
+  - name: Mark Nelson
+    role: Director
+    photo: "[mock]"
+  - name: Brad Fleischfresser
+    role: Supervisor / Carpenter
+    photo: "[mock]"
+credentials:                                           # Q18-21
+  - label: QBCC Licence
+    value: "15139741"
+  - label: NSW Licence
+    value: 473008C
+  - label: Insurance
+    value: Fully insured
+  - label: Warranty
+    value: As per QBCC guidelines

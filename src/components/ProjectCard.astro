@@ -1,0 +1,61 @@
+---
+import { Image } from "astro:assets";
+import { getEntry } from "astro:content";
+import { mock, plain, year, type Project } from "../lib/content";
+
+interface Props {
+  project: Project;
+  ratio?: "natural" | "4x3" | "3x4";
+  headingLevel?: "h2" | "h3";
+}
+const { project, ratio = "4x3", headingLevel: Heading = "h3" } = Astro.props;
+const service = await getEntry(project.data.service);
+---
+
+<article class="pcard">
+  <a href={`/projects/${project.id}`} class="pcard__link">
+    <div class:list={["pcard__img zoom", ratio !== "natural" && `ratio ratio--${ratio}`]}>
+      <Image
+        src={project.data.coverImage}
+        alt={plain(project.data.summary)}
+        widths={[375, 750]}
+        sizes="(max-width: 48rem) 100vw, 33vw"
+        class:list={[ratio !== "natural" && "cover"]}
+      />
+    </div>
+    <Heading class="pcard__title" set:html={mock(project.data.title)} />
+  </a>
+  <p class="pcard__meta">
+    {project.data.location}, {service?.data.title}, {year(project.data.date)}
+  </p>
+</article>
+
+<style>
+  .pcard__link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .pcard__img {
+    border-radius: 0;
+  }
+
+  .pcard__title {
+    margin-top: 1rem;
+    font-size: var(--fs-md);
+    line-height: 1.2;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .pcard__link:hover .pcard__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+
+  .pcard__meta {
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+</style>

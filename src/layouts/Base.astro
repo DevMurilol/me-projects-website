@@ -1,0 +1,93 @@
+---
+import "../styles/global.css";
+import "../styles/motion.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import SiteBoard from "../components/SiteBoard.astro";
+import { getSite, getServices, plain } from "../lib/content";
+
+interface Props {
+  title: string;
+  description: string;
+  board?: boolean | string;
+  noindex?: boolean;
+}
+
+const { title, description, board = true, noindex = false } = Astro.props;
+const site = await getSite();
+const services = await getServices();
+const fullTitle = title === site.shortName ? `${site.shortName} | Builders on the southern Gold Coast` : `${plain(title)} | ${site.shortName}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// schema.org: the street address stays here for Google even though the page only shows the suburb (Q1).
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "GeneralContractor",
+  name: site.businessName,
+  url: Astro.site?.toString(),
+  telephone: site.phoneHref,
+  email: site.email,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: site.address.street,
+    addressLocality: site.address.suburb,
+    addressRegion: site.address.state,
+    postalCode: site.address.postcode,
+    addressCountry: "AU",
+  },
+  areaServed: site.serviceAreas,
+  openingHours: "Mo-Fr 07:00-16:00",
+  makesOffer: services.map((s) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: s.data.title } })),
+};
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={plain(description)} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#13243b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.businessName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={plain(description)} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_AU" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    {board && <SiteBoard heading={typeof board === "string" ? board : undefined} />}
+    <Footer />
+    <script>
+      // Highlight "[mock]" left inside Markdown bodies (placeholders, see MOCKS.md). No-op once content is real.
+      document.querySelectorAll(".prose").forEach((root) => {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const hits: Text[] = [];
+        while (walker.nextNode()) if (/\[mock\]/i.test(walker.currentNode.nodeValue ?? "")) hits.push(walker.currentNode as Text);
+        hits.forEach((node) => {
+          const frag = document.createDocumentFragment();
+          (node.nodeValue ?? "").split(/(\[mock\])/i).forEach((part) => {
+            if (!/^\[mock\]$/i.test(part)) return part && frag.append(part);
+            const mark = document.createElement("mark");
+            mark.className = "mock";
+            mark.title = "Placeholder - see MOCKS.md";
+            mark.textContent = "mock";
+            frag.append(mark);
+          });
+          node.replaceWith(frag);
+        });
+      });
+    </script>
+  </body>
+</html>

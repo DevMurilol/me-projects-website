@@ -1,0 +1,177 @@
+---
+// The "site board": the sign a builder puts out the front of every job.
+// Carries the consultation CTA plus the licence numbers QLD law requires on advertising.
+import Button from "./Button.astro";
+import { getSite, mock, serviceAreaSentence } from "../lib/content";
+
+interface Props {
+  heading?: string;
+}
+const { heading = "Planning an extension or new build?" } = Astro.props;
+const site = await getSite();
+const qld = site.licences.find((l) => l.authority.startsWith("QBCC"));
+const nsw = site.licences.find((l) => l.authority.startsWith("NSW"));
+---
+
+<section class="board-wrap" aria-labelledby="board-heading">
+  <div class="container">
+    <div class="board" data-reveal>
+      <div class="board__main">
+        <div class="board__pitch">
+          <h2 id="board-heading">{heading}</h2>
+          <p>
+            Start with a paid design consultation. We'll look at your site, talk through your plans and budget, and give
+            you straight advice before anything is drawn.
+          </p>
+        </div>
+        <div class="board__contact">
+          <a class="board__phone" href={`tel:${site.phoneHref}`}>{site.phone}</a>
+          <a class="board__email" href={`mailto:${site.email}`}>{site.email}</a>
+          <Button href="/contact" variant="light">Book a consultation</Button>
+        </div>
+      </div>
+
+      <dl class="board__sign">
+        <div>
+          <dt>Builder</dt>
+          <dd>{site.businessName}</dd>
+        </div>
+        {
+          qld && (
+            <div>
+              <dt>QBCC licence</dt>
+              <dd>{qld.number}</dd>
+            </div>
+          )
+        }
+        {
+          nsw && (
+            <div>
+              <dt>NSW licence</dt>
+              <dd>{nsw.number}</dd>
+            </div>
+          )
+        }
+        <div>
+          <dt>ABN</dt>
+          <dd>{site.abn}</dd>
+        </div>
+        <div class="board__areas">
+          <dt>Working in</dt>
+          <dd set:html={mock(serviceAreaSentence(site.serviceAreas))} />
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .board-wrap {
+    padding-block: var(--section);
+  }
+
+  .board {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 4rem);
+    padding: clamp(1.75rem, 5vw, 4.5rem);
+    background: var(--board-bg);
+    color: var(--board-text);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .board__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: end;
+  }
+
+  .board h2 {
+    color: var(--board-text);
+    max-width: 16ch;
+  }
+
+  .board__pitch p {
+    margin-top: 1.25rem;
+    max-width: 44ch;
+    color: var(--board-muted);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+  }
+
+  .board__contact {
+    display: grid;
+    justify-items: start;
+    gap: 0.6rem;
+  }
+
+  .board__phone {
+    color: var(--board-text);
+    font-size: var(--fs-xl);
+    font-stretch: 125%;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .board__email {
+    color: var(--board-muted);
+    text-underline-offset: 0.3em;
+    margin-bottom: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  .board__email:hover,
+  .board__phone:hover {
+    color: #fff;
+  }
+
+  /* The sign strip: licence details laid out like the panel on a site board. */
+  .board__sign {
+    display: grid;
+    grid-template-columns: repeat(4, auto) minmax(0, 1fr);
+    gap: 1.5rem clamp(1.5rem, 3vw, 3rem);
+    margin: 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--board-line);
+  }
+
+  .board__sign dt {
+    color: var(--board-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .board__sign dd {
+    margin: 0.25rem 0 0;
+    font-stretch: 112%;
+    font-weight: 600;
+  }
+
+  @media (max-width: 60rem) {
+    .board__main {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .board__sign {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .board__areas {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .board__sign {
+      grid-template-columns: 1fr;
+    }
+
+    .board__phone {
+      font-size: var(--fs-lg);
+    }
+  }
+</style>

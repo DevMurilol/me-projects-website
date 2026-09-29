@@ -1,0 +1,38 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  href?: string;
+  variant?: "primary" | "ghost" | "light";
+  icon?: string;
+  type?: "button" | "submit";
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { href, variant = "primary", icon, type = "button", class: className, ...rest } = Astro.props;
+const trailing = icon ?? (variant === "ghost" ? undefined : "ph:arrow-up-right-light");
+const classes = ["btn", variant !== "primary" && `btn--${variant}`, className];
+---
+
+{
+  href ? (
+    <a href={href} class:list={classes} {...rest}>
+      <slot />
+      {trailing && (
+        <span class="btn__icon" aria-hidden="true">
+          <Icon name={trailing} />
+        </span>
+      )}
+    </a>
+  ) : (
+    <button type={type} class:list={classes} {...rest}>
+      <slot />
+      {trailing && (
+        <span class="btn__icon" aria-hidden="true">
+          <Icon name={trailing} />
+        </span>
+      )}
+    </button>
+  )
+}

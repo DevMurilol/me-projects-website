@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Motion layer (added last, on top of the settled layout).
+   - One easing for the whole site: var(--ease).
+   - Hero: one load-in moment, then recedes as the page scrolls over it.
+   - Section blocks ([data-reveal]) rise 32px and fade in, driven by scroll position.
+   - Only opacity and transform. Navigation and forms are never animated.
+   - Base state is always visible: without support (or with reduced motion)
+     the page renders static.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---------- Hero load-in: copy first, photo settles just after */
+  [data-hero] > * {
+    animation: rise-in 900ms var(--ease) both;
+  }
+
+  [data-hero] > :nth-child(2) {
+    animation-delay: 90ms;
+  }
+
+  [data-hero] > :nth-child(3) {
+    animation-delay: 180ms;
+  }
+
+  [data-hero-photo] img {
+    animation: settle-in 1200ms var(--ease) 120ms both;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    /* ---------- Hero recede: tied to the first ~90vh of scroll */
+    [data-hero],
+    [data-hero-photo] {
+      animation: hero-recede linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+
+    /* ---------- Section blocks: in by the time 30% of the journey is covered */
+    [data-reveal] {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Drift down at a slower rate than the scroll, shrink slightly, dim.
+   Input range runs the full 0 -> 90vh so the value never snaps back. */
+@keyframes hero-recede {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0.35;
+    transform: translateY(12vh) scale(0.96);
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

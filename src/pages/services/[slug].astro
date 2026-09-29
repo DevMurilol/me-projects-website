@@ -1,0 +1,226 @@
+---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Button from "../../components/Button.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { getProjects, getServices, getSite, mock, serviceAreaSentence, type Service } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const services = await getServices();
+  return services.map((service) => ({ params: { slug: service.id }, props: { service } }));
+}
+
+const { service } = Astro.props as { service: Service };
+const { Content } = await render(service);
+const site = await getSite();
+const related = (await getProjects()).filter((p) => p.data.service.id === service.id);
+const others = (await getServices()).filter((s) => s.id !== service.id);
+---
+
+<Base
+  title={service.data.title}
+  description={`${service.data.summary} Serving ${serviceAreaSentence(site.serviceAreas)}.`}
+  board={service.id === "commercial-fit-outs" ? "Planning a fit-out?" : undefined}
+>
+  <section class="svc-hero container">
+    <div class="svc-hero__copy">
+      <a class="link svc-hero__back" href="/services">All services</a>
+      <h1>{service.data.title}</h1>
+      <p class="lead" set:html={mock(service.data.summary)} />
+      <Button href="/contact">Book a consultation</Button>
+    </div>
+    <div class="frame svc-hero__photo">
+      <Image
+        src={service.data.image}
+        alt=""
+        widths={[375, 750]}
+        sizes="(max-width: 48rem) 100vw, 45vw"
+        loading="eager"
+      />
+    </div>
+  </section>
+
+  <section class="container svc-body">
+    <div class="prose" data-reveal>
+      <Content />
+    </div>
+    <aside class="svc-aside" data-reveal>
+      <h2 class="svc-aside__title">Where we work</h2>
+      <p set:html={mock(serviceAreaSentence(site.serviceAreas))} />
+      <h2 class="svc-aside__title">Licensed and insured</h2>
+      <ul>
+        {site.licences.map((l) => <li>{l.authority} {l.number}</li>)}
+        <li>{site.insurance}</li>
+        <li>Warranty {site.warranty.charAt(0).toLowerCase() + site.warranty.slice(1)}</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="section" aria-labelledby="related-heading">
+    <div class="container">
+      <h2 id="related-heading" class="related__title">{service.data.title} projects</h2>
+      {
+        related.length > 0 ? (
+          <div class="related" data-reveal>
+            {related.map((p) => (
+              <ProjectCard project={p} />
+            ))}
+          </div>
+        ) : (
+          <div class="empty" data-reveal>
+            <p>We're adding {service.data.title.toLowerCase()} projects to the site. Ask us for examples when you book your consultation.</p>
+            <a class="link" href="/projects">See all projects</a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <nav class="container others" aria-label="Other services">
+    <h2 class="others__title">Other services</h2>
+    <ul>
+      {
+        others.map((s) => (
+          <li>
+            <a href={`/services/${s.id}`}>{s.data.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</Base>
+
+<style>
+  .svc-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: center;
+    padding-block: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .svc-hero__copy {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: start;
+  }
+
+  .svc-hero__back {
+    font-size: var(--fs-sm);
+  }
+
+  .svc-hero__photo {
+    width: min(100%, 34rem);
+    justify-self: end;
+  }
+
+  .svc-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    padding-top: var(--section);
+    border-top: 1px solid var(--line);
+  }
+
+  .svc-body .prose {
+    font-size: var(--fs-md);
+    line-height: 1.55;
+  }
+
+  .svc-aside {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    color: var(--text-muted);
+  }
+
+  .svc-aside__title {
+    font-size: var(--fs-sm);
+    font-stretch: 112%;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--heading);
+    margin-top: 1.25rem;
+  }
+
+  .svc-aside__title:first-child {
+    margin-top: 0;
+  }
+
+  .svc-aside ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  .related__title {
+    font-size: var(--fs-lg);
+    margin-bottom: 2rem;
+  }
+
+  .related {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: 2rem;
+  }
+
+  .empty {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+    max-width: 52ch;
+    padding: 2rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+  }
+
+  .others {
+    padding-bottom: 1rem;
+  }
+
+  .others__title {
+    font-size: var(--fs-sm);
+    font-stretch: 112%;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .others ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .others a {
+    display: inline-block;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--heading);
+    font-weight: 600;
+    font-stretch: 112%;
+    text-decoration: none;
+    transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .others a:hover {
+    border-color: var(--heading);
+    background: color-mix(in srgb, var(--heading) 6%, transparent);
+  }
+
+  @media (max-width: 52rem) {
+    .svc-hero,
+    .svc-body {
+      grid-template-columns: 1fr;
+    }
+
+    .svc-hero__photo {
+      justify-self: start;
+    }
+  }
+</style>

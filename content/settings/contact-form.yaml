@@ -1,0 +1,13 @@
+# Q24 - fields Mark wants from every lead. Enquiries go to settings/site.yaml -> enquiryEmail.
+fields:
+  - { name: name, label: Name, type: text, required: true }
+  - { name: phone, label: Phone, type: tel, required: true }
+  - { name: email, label: Email, type: email, required: true }
+  - { name: suburb, label: Suburb, type: text, required: true }
+  - { name: projectType, label: Type of project, type: select, required: true, optionsFrom: services }
+  - { name: budget, label: Approximate budget, type: select, required: false,
+      options: ["Under $50k [mock]", "$50k - $150k [mock]", "$150k - $500k [mock]", "$500k+ [mock]"] }
+  - { name: timeframe, label: Preferred timeframe, type: select, required: false,
+      options: ["As soon as possible", "Within 3 months", "3-6 months", "6+ months", "Just planning"] }
+  - { name: files, label: Photos or plans, type: file, required: false, accept: "image/*,.pdf", maxFiles: 5 }
+  - { name: message, label: Tell us about your project, type: textarea, required: false }
