@@ -1,13 +1,15 @@
 ---
-title: "Coolangatta Restaurant Fit-out [mock]"
+title: "Restaurant Fit-out [mock]"
 service: commercial-fit-outs
-location: "Coolangatta"
-date: 2025-08-02
+location: "[mock]"
+date: 2025-08-01
 summary: "Built-in timber banquettes and bench seating for a busy dining room. [mock]"
 coverImage: ../../src/assets/photos/banquette-finished.webp
-images:
-  - ../../src/assets/photos/banquette-finished.webp
-  - ../../src/assets/photos/timber-bench-bifold.webp
+gallery:
+  - image: ../../src/assets/photos/banquette-finished.webp
+    caption: "Curved banquettes against the stone feature wall"
+  - image: ../../src/assets/photos/timber-bench-bifold.webp
+    caption: "Bench seating along the bi-fold windows"
 beforeImage: ../../src/assets/photos/banquette-build.webp
 afterImage: ../../src/assets/photos/banquette-finished.webp
 featured: true

@@ -5,6 +5,7 @@ export interface SiteSettings {
   shortName: string;
   tagline: string;
   experience: string;
+  intro: { heading: string; text: string };
   abn: string;
   licences: { authority: string; number: string; class?: string }[];
   insurance: string;
@@ -70,7 +71,8 @@ export async function getFaq() {
 }
 
 export async function getTestimonials() {
-  return getCollection("testimonials");
+  const all = await getCollection("testimonials");
+  return all.sort((a, b) => a.data.order - b.data.order);
 }
 
 export type Service = CollectionEntry<"services">;

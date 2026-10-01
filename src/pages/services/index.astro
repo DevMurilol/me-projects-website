@@ -21,10 +21,11 @@ const services = await getServices();
     {
       services.map((s, i) => (
         <a href={`/services/${s.id}`} class:list={["svc", i === 0 && "svc--lead"]} data-reveal>
-          <div class="svc__img ratio zoom">
+          <div class="svc__img ratio zoom settle">
             <Image
               src={s.data.image}
               alt=""
+              style={`view-transition-name: s-${s.id}; view-transition-class: photo`}
               widths={[375, 750]}
               sizes={i === 0 ? "(max-width: 48rem) 100vw, 60vw" : "(max-width: 48rem) 100vw, 45vw"}
               class="cover"

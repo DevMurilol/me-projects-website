@@ -4,14 +4,14 @@ import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import Button from "../components/Button.astro";
 import ProjectCard from "../components/ProjectCard.astro";
-import stair from "../assets/photos/stair-curve.webp";
+import Stars from "../components/Stars.astro";
+import heroPhoto from "../assets/photos/outdoor-kitchen-servery.webp";
 import {
   getAbout,
   getProjects,
   getServices,
   getSite,
   getTestimonials,
-  isMock,
   mock,
   plain,
   serviceAreaSentence,
@@ -22,15 +22,20 @@ const site = await getSite();
 const about = await getAbout();
 const services = await getServices();
 const projects = await getProjects();
-const testimonials = await getTestimonials();
+const testimonials = (await getTestimonials()).filter((t) => t.data.featured);
 
 const qld = site.licences.find((l) => l.authority.startsWith("QBCC"));
 const nsw = site.licences.find((l) => l.authority.startsWith("NSW"));
 
-// Featured story: the project with a before/after pair, otherwise the latest featured one.
-const featured = projects.find((p) => p.data.featured && p.data.beforeImage) ?? projects.find((p) => p.data.featured)!;
-const featuredService = await getEntry(featured.data.service);
-const more = projects.filter((p) => p.data.featured && p.id !== featured.id).slice(0, 3);
+// Flagship: the best documented project (most photos). The others follow as cards.
+const flagship = [...projects].sort((a, b) => b.data.gallery.length - a.data.gallery.length)[0];
+const flagshipService = await getEntry(flagship.data.service);
+const others = projects.filter((p) => p.id !== flagship.id).slice(0, 2);
+
+// Spread photos: high-res landscapes (not the hero shot) plus one portrait.
+const notHero = flagship.data.gallery.filter((g) => !g.image.src.includes("outdoor-kitchen-servery"));
+const spreadWide = notHero.filter((g) => g.image.width >= 1400 && g.image.width > g.image.height).slice(0, 2);
+const spreadTall = notHero.find((g) => g.image.height > g.image.width * 1.2);
 
 // Services bento: the four priority services get photos, the other two are text tiles.
 const [s1, s2, s3, s4, ...rest] = services;
@@ -59,28 +64,40 @@ const steps = [
   title={site.shortName}
   description={`Builders for extensions, new builds, decks and bathrooms across ${serviceAreaSentence(site.serviceAreas)}. Licensed in QLD and NSW.`}
 >
-  <!-- Hero: asymmetric split, the staircase photo carries the page -->
-  <section class="hero container">
-    <div class="hero__copy" data-hero>
-      <h1>Built by the people you talk to.</h1>
-      <p class="lead">
-        Extensions, new builds, decks and bathrooms across the southern Gold Coast and Northern NSW.
-      </p>
-      <div class="hero__ctas">
-        <Button href="/contact">Book a consultation</Button>
-        <Button href="/projects" variant="ghost">View projects</Button>
-      </div>
-    </div>
-    <figure class="hero__photo frame" data-hero-photo>
+  <!-- Hero: full-bleed photograph, copy from the original site set in the display serif -->
+  <section class="hero">
+    <div class="hero__media" data-hero-media>
       <Image
-        src={stair}
-        alt="Curved rendered staircase with solid timber treads"
-        widths={[375, 750]}
-        sizes="(max-width: 48rem) 100vw, 40vw"
+        src={heroPhoto}
+        alt="Outdoor kitchen on a timber deck with a servery window opening into the kitchen"
+        widths={[768, 1280, 1600, 2048]}
+        sizes="100vw"
         loading="eager"
         fetchpriority="high"
+        class="hero__img"
       />
-    </figure>
+    </div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="container hero__content">
+      <div class="hero__copy" data-hero>
+        <h1 aria-label={site.intro.heading}>
+          {
+            site.intro.heading.split(" ").map((word, i) => (
+              <>
+                <span class="split-word" aria-hidden="true">
+                  <span style={`--i: ${i}`}>{word}</span>
+                </span>{" "}
+              </>
+            ))
+          }
+        </h1>
+        <p class="hero__text">{site.intro.text}</p>
+        <div class="hero__ctas">
+          <Button href="/contact" variant="light">Book a consultation</Button>
+          <Button href="/projects" variant="ghost-light">View projects</Button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Facts: plain credentials, no stat theatrics -->
@@ -119,15 +136,21 @@ const steps = [
       <div class="section-head" data-reveal>
         <h2 id="services-heading">What we build</h2>
       </div>
-      <div class="bento" data-reveal>
+      <div class="bento">
         {
           [s1, s2, s3, s4].map((s, i) => (
-            <a href={`/services/${s.id}`} class:list={["bento__cell bento__cell--photo", `bento__cell--${i + 1}`]}>
-              <div class="bento__img zoom">
+            <a
+              href={`/services/${s.id}`}
+              class:list={["bento__cell bento__cell--photo", `bento__cell--${i + 1}`]}
+              data-reveal-item
+              style={`--i: ${i % 2}`}
+            >
+              <div class="bento__img zoom settle">
                 <Image
                   src={s.data.image}
                   alt=""
-                  widths={[375, 750]}
+                  style={`view-transition-name: s-${s.id}; view-transition-class: photo`}
+                  widths={[375, 750, 1200]}
                   sizes={i === 0 ? "(max-width: 48rem) 100vw, 58vw" : "(max-width: 48rem) 100vw, 33vw"}
                   class="cover"
                 />
@@ -141,7 +164,12 @@ const steps = [
         }
         {
           rest.map((s, i) => (
-            <a href={`/services/${s.id}`} class:list={["bento__cell bento__cell--text", i === 1 && "bento__cell--navy"]}>
+            <a
+              href={`/services/${s.id}`}
+              class:list={["bento__cell bento__cell--text", i === 1 && "bento__cell--navy"]}
+              data-reveal-item
+              style={`--i: ${i + 1}`}
+            >
               <h3>{s.data.title}</h3>
               <p set:html={mock(s.data.summary)} />
             </a>
@@ -151,56 +179,67 @@ const steps = [
     </div>
   </section>
 
-  <!-- Featured project: before and after -->
-  <section class="section section--tint" aria-labelledby="featured-heading">
-    <div class="container feature" data-reveal>
-      <div class="feature__after">
-        <Image
-          src={featured.data.afterImage ?? featured.data.coverImage}
-          alt={plain(featured.data.summary)}
-          widths={[375, 750]}
-          sizes="(max-width: 48rem) 100vw, 50vw"
-          class="cover"
-        />
-      </div>
-      <div class="feature__body">
+  <!-- Flagship project: an editorial spread -->
+  <section class="section section--tint" aria-labelledby="flagship-heading">
+    <div class="container spread" data-reveal>
+      <div class="spread__text">
+        <h2 id="flagship-heading" set:html={mock(flagship.data.title)} />
+        <p class="lead" set:html={mock(flagship.data.summary)} />
+        <dl class="meta">
+          <div><dt>Location</dt><dd set:html={mock(flagship.data.location)} /></div>
+          <div><dt>Service</dt><dd>{flagshipService?.data.title}</dd></div>
+          <div><dt>Photos</dt><dd>{flagship.data.gallery.length}</dd></div>
+        </dl>
+        <a class="link" href={`/projects/${flagship.id}`}>Read the project</a>
         {
-          featured.data.beforeImage && (
-            <figure class="feature__before">
-              <Image src={featured.data.beforeImage} alt="The same room during the build" widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 24vw" />
-              <figcaption>During the build</figcaption>
+          spreadTall && (
+            <figure class="spread__tall">
+              <div class="settle">
+                <Image src={spreadTall.image} alt={spreadTall.caption ?? ""} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 26vw" />
+              </div>
+              {spreadTall.caption && <figcaption>{spreadTall.caption}</figcaption>}
             </figure>
           )
         }
-        <h2 id="featured-heading" set:html={mock(featured.data.title)} />
-        <p class="lead" set:html={mock(featured.data.summary)} />
-        <dl class="feature__meta">
-          <div><dt>Location</dt><dd>{featured.data.location}</dd></div>
-          <div><dt>Service</dt><dd>{featuredService?.data.title}</dd></div>
-          <div><dt>Completed</dt><dd>{year(featured.data.date)}</dd></div>
-        </dl>
-        <a class="link" href={`/projects/${featured.id}`}>Read the project</a>
+      </div>
+      <div class="spread__wide">
+        {
+          spreadWide.map((g) => (
+            <figure>
+              <div class="settle">
+                <Image
+                  src={g.image}
+                  alt={g.caption ?? ""}
+                  widths={[750, 1200, 1500]}
+                  sizes="(max-width: 48rem) 100vw, 55vw"
+                  style={g.image.src === flagship.data.coverImage.src ? `view-transition-name: p-${flagship.id}; view-transition-class: photo` : undefined}
+                />
+              </div>
+              {g.caption && <figcaption>{g.caption}</figcaption>}
+            </figure>
+          ))
+        }
       </div>
     </div>
   </section>
 
-  <!-- More work: three covers at different heights -->
+  <!-- More projects: two covers, second one dropped for rhythm -->
   <section class="section" aria-labelledby="more-heading">
     <div class="container">
       <div class="more__head" data-reveal>
-        <h2 id="more-heading">Recent projects</h2>
+        <h2 id="more-heading">More projects</h2>
         <Button href="/projects" variant="ghost">View projects</Button>
       </div>
-      <div class="more" data-reveal>
-        {more.map((p, i) => <ProjectCard project={p} ratio={i === 1 ? "3x4" : "4x3"} />)}
+      <div class="more">
+        {others.map((p, i) => <ProjectCard project={p} ratio="3x4" reveal={i} />)}
       </div>
     </div>
   </section>
 
-  <!-- Approach: Mark's own words, set large -->
+  <!-- Approach: the promise as the headline, Mark's own words beneath -->
   <section class="section section--tint" aria-labelledby="approach-heading">
     <div class="container approach" data-reveal>
-      <h2 id="approach-heading" class="visually-hidden">Our approach</h2>
+      <h2 id="approach-heading">Built by the people you talk to.</h2>
       <p class="approach__statement">{about.approach}</p>
       <ul class="approach__team">
         {
@@ -241,29 +280,20 @@ const steps = [
     <div class="container">
       <div class="more__head" data-reveal>
         <h2 id="reviews-heading">What clients say</h2>
-        {
-          isMock(site.googleBusinessProfile) ? (
-            <p class="muted">
-              Google reviews link <mark class="mock">mock</mark>
-            </p>
-          ) : (
-            <a class="link" href={site.googleBusinessProfile} rel="noopener">
-              Read our Google reviews
-            </a>
-          )
-        }
+        <a class="link" href="/about#reviews">Read the full reviews</a>
       </div>
     </div>
     <ul class="reviews" data-reveal>
       {
         testimonials.map((t) => (
           <li class="review">
+            <Stars rating={t.data.rating} />
             <blockquote>
-              <p set:html={`&ldquo;${mock(t.data.text)}&rdquo;`} />
+              <p>&ldquo;{t.data.excerpt}&rdquo;</p>
             </blockquote>
             <p class="review__who">
-              <span set:html={mock(t.data.name)} />
-              <span class="muted">{t.data.location}</span>
+              <span>{t.data.name}</span>
+              <span class="muted">Google review</span>
             </p>
           </li>
         ))
@@ -273,42 +303,72 @@ const steps = [
 </Base>
 
 <style>
-  /* ---------- Hero */
+  /* ---------- Hero: full bleed, slides up under the floating header */
   .hero {
+    position: relative;
+    isolation: isolate;
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: center;
-    padding-block: clamp(2.5rem, 6vw, 5rem) clamp(2.5rem, 5vw, 4rem);
+    align-items: end;
+    min-height: min(100svh, 62rem);
+    margin-top: calc(-1 * (var(--header-h) + 0.75rem));
+    overflow: hidden;
+    background: var(--navy-950);
+    color: #f6f6f3;
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  .hero__media :global(.hero__img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 62% 45%;
+  }
+
+  /* Navy scrim: strong behind the copy, clear over the servery and the bamboo. */
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgb(11 22 38 / 0.88) 0%, rgb(11 22 38 / 0.64) 38%, rgb(11 22 38 / 0.08) 74%),
+      linear-gradient(0deg, rgb(11 22 38 / 0.62) 0%, transparent 55%);
+  }
+
+  .hero__content {
+    padding-block: calc(var(--header-h) + 6rem) clamp(3rem, 7vw, 5.5rem);
   }
 
   .hero__copy {
     display: grid;
     gap: 1.5rem;
+    max-width: 60rem;
   }
 
-  /* Two lines on desktop: "Built by the people / you talk to." */
+  /* Two lines at desktop: "Over 20 years' experience in both / residential and commercial projects." */
   .hero h1 {
-    font-size: clamp(2.5rem, 1.4rem + 3.1vw, 3.6rem);
+    color: #f6f6f3;
+    font-size: clamp(2.375rem, 1.35rem + 2.75vw, 3.9rem);
+    line-height: 1.06;
+  }
+
+  .hero__text {
+    max-width: 50ch;
+    color: #d8dfe7;
+    font-size: var(--fs-md);
+    line-height: 1.55;
   }
 
   .hero__ctas {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 0.75rem;
-  }
-
-  .hero__photo {
-    margin: 0;
-    justify-self: end;
-    width: min(100%, 30rem);
-  }
-
-  .hero__photo :global(img) {
-    max-height: calc(100dvh - var(--header-h) - 12rem);
-    width: 100%;
-    object-fit: cover;
+    margin-top: 0.5rem;
   }
 
   /* ---------- Facts */
@@ -318,7 +378,7 @@ const steps = [
     gap: 1.5rem 2rem;
     margin: 0;
     padding-block: 2rem;
-    border-block: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
 
   .facts dt {
@@ -339,7 +399,6 @@ const steps = [
   .bento {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-auto-rows: minmax(0, auto);
     gap: 1rem;
   }
 
@@ -355,10 +414,7 @@ const steps = [
     grid-row: span 2;
   }
 
-  .bento__cell--2 {
-    grid-column: span 5;
-  }
-
+  .bento__cell--2,
   .bento__cell--3 {
     grid-column: span 5;
   }
@@ -381,11 +437,11 @@ const steps = [
     background: var(--concrete-deep);
   }
 
-  .bento__cell--navy {
+  .bento .bento__cell--navy {
     background: var(--board-bg);
   }
 
-  .bento__cell--navy:hover {
+  .bento .bento__cell--navy:hover {
     background: var(--navy-800);
   }
 
@@ -406,11 +462,6 @@ const steps = [
   .bento__cell--1 .bento__img {
     aspect-ratio: auto;
     min-height: 22rem;
-  }
-
-  /* Keep the courtyard in frame, not the blurred table in the foreground. */
-  .bento__cell--1 :global(img) {
-    object-position: 50% 22%;
   }
 
   .bento__text {
@@ -440,49 +491,62 @@ const steps = [
     text-underline-offset: 0.25em;
   }
 
-  /* ---------- Featured project */
-  .feature {
+  /* ---------- Flagship spread */
+  .spread {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
     gap: clamp(2rem, 5vw, 5rem);
-    align-items: end;
+    align-items: start;
   }
 
-  .feature__after {
-    aspect-ratio: 4 / 5;
-    overflow: hidden;
-  }
-
-  .feature__body {
+  .spread__text {
     display: grid;
     gap: 1.25rem;
     justify-items: start;
   }
 
-  .feature__before {
-    margin: 0 0 1rem;
-    width: min(100%, 17rem);
+  .spread__text .lead {
+    max-width: 34ch;
   }
 
-  .feature__before figcaption {
-    margin-top: 0.5rem;
+  .spread figure {
+    margin: 0;
+  }
+
+  .spread figcaption {
+    margin-top: 0.6rem;
     font-size: var(--fs-sm);
     color: var(--text-muted);
   }
 
-  .feature__meta {
+  .spread .spread__tall {
+    width: min(100%, 22rem);
+    margin-top: clamp(1.5rem, 4vw, 3.5rem);
+  }
+
+  .spread__wide {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .spread__wide figure:nth-child(2) {
+    width: 82%;
+    justify-self: end;
+  }
+
+  .meta {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem 2.5rem;
     margin: 0.5rem 0;
   }
 
-  .feature__meta dt {
+  .meta dt {
     font-size: var(--fs-sm);
     color: var(--text-muted);
   }
 
-  .feature__meta dd {
+  .meta dd {
     margin: 0.2rem 0 0;
     font-weight: 600;
     font-stretch: 112%;
@@ -501,31 +565,33 @@ const steps = [
 
   .more {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(1.5rem, 3vw, 2.5rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 4vw, 4rem);
     align-items: start;
+    max-width: 64rem;
   }
 
   .more > :global(:nth-child(2)) {
-    margin-top: clamp(0rem, 6vw, 5rem);
+    margin-top: clamp(0rem, 8vw, 7rem);
   }
 
   /* ---------- Approach */
   .approach {
     display: grid;
-    gap: 2.5rem;
+    gap: 2rem;
     justify-items: start;
   }
 
+  .approach h2 {
+    font-size: var(--fs-2xl);
+    max-width: 14ch;
+  }
+
   .approach__statement {
-    max-width: 36ch;
+    max-width: 52ch;
     color: var(--heading);
-    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
-    font-stretch: 112%;
-    font-weight: 560;
-    line-height: 1.18;
-    letter-spacing: -0.015em;
-    text-wrap: balance;
+    font-size: var(--fs-md);
+    line-height: 1.55;
   }
 
   .approach__team {
@@ -567,9 +633,10 @@ const steps = [
   }
 
   .steps__num {
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 72;
     font-size: var(--fs-xl);
-    font-stretch: 125%;
-    font-weight: 700;
+    font-weight: 400;
     line-height: 1;
     color: var(--heading);
   }
@@ -600,8 +667,8 @@ const steps = [
 
   .review {
     display: grid;
-    align-content: space-between;
-    gap: 2rem;
+    grid-template-rows: auto 1fr auto;
+    gap: 1.25rem;
     padding: 1.75rem;
     background: var(--surface-raised);
     border: 1px solid var(--line);
@@ -612,8 +679,10 @@ const steps = [
   .review blockquote {
     margin: 0;
     color: var(--heading);
-    font-size: 1.1rem;
-    line-height: 1.5;
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 24;
+    font-size: 1.2rem;
+    line-height: 1.45;
   }
 
   .review__who {
@@ -631,15 +700,6 @@ const steps = [
 
   /* ---------- Mobile collapse */
   @media (max-width: 60rem) {
-    .hero {
-      grid-template-columns: 1fr;
-    }
-
-    .hero__photo {
-      justify-self: start;
-      width: min(100%, 26rem);
-    }
-
     .facts dl {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -662,12 +722,12 @@ const steps = [
       min-height: 0;
     }
 
-    .feature {
+    .spread {
       grid-template-columns: 1fr;
     }
 
-    .feature__after {
-      aspect-ratio: 4 / 3;
+    .spread__tall {
+      display: none;
     }
 
     .steps {
@@ -677,12 +737,21 @@ const steps = [
   }
 
   @media (max-width: 48rem) {
+    /* On phones the copy sits over the lower photo, so the scrim darkens from the bottom. */
+    .hero__scrim {
+      background: linear-gradient(0deg, rgb(11 22 38 / 0.92) 0%, rgb(11 22 38 / 0.7) 55%, rgb(11 22 38 / 0.3) 100%);
+    }
+
     .bento__cell--1,
     .bento__cell--2,
     .bento__cell--3,
     .bento__cell--4,
     .bento__cell--text {
       grid-column: 1 / -1;
+    }
+
+    .spread__wide figure:nth-child(2) {
+      width: 100%;
     }
 
     .more {

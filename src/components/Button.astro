@@ -3,7 +3,7 @@ import { Icon } from "astro-icon/components";
 
 interface Props {
   href?: string;
-  variant?: "primary" | "ghost" | "light";
+  variant?: "primary" | "ghost" | "light" | "ghost-light";
   icon?: string;
   type?: "button" | "submit";
   class?: string;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const { href, variant = "primary", icon, type = "button", class: className, ...rest } = Astro.props;
-const trailing = icon ?? (variant === "ghost" ? undefined : "ph:arrow-up-right-light");
+const trailing = icon ?? (variant.startsWith("ghost") ? undefined : "ph:arrow-up-right-light");
 const classes = ["btn", variant !== "primary" && `btn--${variant}`, className];
 ---
 

@@ -81,4 +81,11 @@ const jsonLd = {
     max-width: 60ch;
     color: var(--text-muted);
   }
+
+  /* The answer settles in when a question is opened (responds to the user's action). */
+  @media (prefers-reduced-motion: no-preference) {
+    .faq__item[open] p {
+      animation: fade-in 420ms var(--ease) both;
+    }
+  }
 </style>

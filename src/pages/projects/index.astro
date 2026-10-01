@@ -26,9 +26,9 @@ const services = (await getServices()).filter((s) => projects.some((p) => p.data
     <p class="visually-hidden" aria-live="polite" data-count></p>
     <div class="grid">
       {
-        projects.map((p) => (
-          <div class="grid__item" data-service={p.data.service.id}>
-            <ProjectCard project={p} ratio="natural" headingLevel="h2" />
+        projects.map((p, i) => (
+          <div class="grid__item" data-service={p.data.service.id} style={`view-transition-name: card-${p.id}`}>
+            <ProjectCard project={p} ratio="natural" headingLevel="h2" reveal={i} />
           </div>
         ))
       }
@@ -41,17 +41,28 @@ const services = (await getServices()).filter((s) => projects.some((p) => p.data
   const items = document.querySelectorAll<HTMLElement>(".grid__item");
   const count = document.querySelector<HTMLElement>("[data-count]");
 
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const apply = (filter: string | undefined) => {
+    let shown = 0;
+    items.forEach((item) => {
+      const match = filter === "all" || item.dataset.service === filter;
+      item.hidden = !match;
+      if (match) shown++;
+    });
+    if (count) count.textContent = `Showing ${shown} project${shown === 1 ? "" : "s"}`;
+  };
+
   chips.forEach((chip) =>
     chip.addEventListener("click", () => {
-      const filter = chip.dataset.filter;
       chips.forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
-      let shown = 0;
-      items.forEach((item) => {
-        const match = filter === "all" || item.dataset.service === filter;
-        item.hidden = !match;
-        if (match) shown++;
-      });
-      if (count) count.textContent = `Showing ${shown} project${shown === 1 ? "" : "s"}`;
+      const filter = chip.dataset.filter;
+      // Cards glide to their new places (same-document View Transition) where supported.
+      if (document.startViewTransition && !reduceMotion.matches) {
+        document.startViewTransition(() => apply(filter));
+      } else {
+        apply(filter);
+      }
     }),
   );
 </script>

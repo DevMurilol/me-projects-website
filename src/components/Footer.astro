@@ -1,5 +1,5 @@
 ---
-import Wordmark from "./Wordmark.astro";
+import Logo from "./Logo.astro";
 import { getServices, getSite, isMock } from "../lib/content";
 
 const site = await getSite();
@@ -20,7 +20,7 @@ const legal = [
 <footer class="footer">
   <div class="container footer__grid">
     <div class="footer__brand">
-      <a href="/" aria-label="M.E Projects home"><Wordmark /></a>
+      <a href="/" aria-label="M.E Projects home"><Logo height="3.25rem" /></a>
       <p class="muted">
         Builders based in {site.address.suburb}, {site.address.state}.<br />
         {site.experience}.
@@ -83,6 +83,8 @@ const legal = [
   }
 
   .footer__title {
+    font-family: var(--font);
+    font-variation-settings: normal;
     font-size: var(--fs-sm);
     font-stretch: 112%;
     font-weight: 600;

@@ -1,0 +1,38 @@
+---
+// Client logo (public/brand/me-projects-logo.png, black on transparent).
+// Rendered as a CSS mask so it takes the current text colour: navy on light, white on the site board and in dark mode.
+// Swap for an SVG when Mark supplies a vector file (Briefing Q27).
+interface Props {
+  height?: string;
+  class?: string;
+}
+const { height = "2.25rem", class: className } = Astro.props;
+---
+
+<span class:list={["logo", className]} role="img" aria-label="M.E Projects Pty Ltd" style={`--logo-h: ${height}`}></span>
+
+<style>
+  .logo {
+    display: inline-block;
+    height: var(--logo-h);
+    aspect-ratio: 1000 / 361;
+    background-color: currentColor;
+    -webkit-mask: url("/brand/me-projects-logo.png") center / contain no-repeat;
+    mask: url("/brand/me-projects-logo.png") center / contain no-repeat;
+    vertical-align: middle;
+  }
+
+  /* Windows high contrast: masks are dropped, so fall back to the name. */
+  @media (forced-colors: active) {
+    .logo {
+      background: none;
+      aspect-ratio: auto;
+      height: auto;
+    }
+
+    .logo::after {
+      content: "M.E Projects";
+      font-weight: 700;
+    }
+  }
+</style>

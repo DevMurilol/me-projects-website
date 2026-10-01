@@ -2,11 +2,13 @@
 import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
 import PageHead from "../components/PageHead.astro";
+import Stars from "../components/Stars.astro";
 import stairTop from "../assets/photos/stair-curve-top.webp";
-import { getAbout, getSite, isMock, mock } from "../lib/content";
+import { getAbout, getSite, getTestimonials, isMock, mock } from "../lib/content";
 
 const about = await getAbout();
 const site = await getSite();
+const reviews = await getTestimonials();
 ---
 
 <Base title="About" description={`${site.businessName}: ${site.experience}. ${about.intro}`}>
@@ -73,6 +75,36 @@ const site = await getSite();
           <dd>{site.abn}</dd>
         </div>
       </dl>
+    </div>
+  </section>
+  <section class="section section--tint" id="reviews" aria-labelledby="reviews-heading">
+    <div class="container">
+      <div class="reviews-head">
+        <h2 id="reviews-heading" class="about-sub">Reviews from our clients</h2>
+        {
+          !isMock(site.googleBusinessProfile) && (
+            <a class="link" href={site.googleBusinessProfile} target="_blank" rel="noopener">
+              See all reviews on Google<span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          )
+        }
+      </div>
+      <ul class="reviews-full">
+        {
+          reviews.map((r, i) => (
+            <li data-reveal-item style={`--i: ${i % 2}`}>
+              <Stars rating={r.data.rating} />
+              <blockquote>
+                <p>&ldquo;{r.data.text}&rdquo;</p>
+              </blockquote>
+              <p class="reviews-full__who">
+                {r.data.name}
+                <span class="muted">Google review</span>
+              </p>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 </Base>
@@ -182,6 +214,58 @@ const site = await getSite();
     color: var(--heading);
     font-weight: 600;
     font-stretch: 112%;
+  }
+
+  .reviews-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .reviews-head .about-sub {
+    margin-bottom: 0;
+  }
+
+  .reviews-full {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2 22rem;
+    column-gap: clamp(1.5rem, 4vw, 3.5rem);
+  }
+
+  .reviews-full li {
+    display: grid;
+    gap: 1rem;
+    break-inside: avoid;
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .reviews-full blockquote {
+    margin: 0;
+    color: var(--heading);
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 24;
+    font-size: 1.2rem;
+    line-height: 1.5;
+  }
+
+  .reviews-full__who {
+    display: grid;
+    gap: 0.1rem;
+    font-weight: 600;
+    font-stretch: 112%;
+  }
+
+  .reviews-full__who .muted {
+    font-weight: 400;
+    font-stretch: 100%;
+    font-size: var(--fs-sm);
   }
 
   @media (max-width: 52rem) {

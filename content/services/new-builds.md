@@ -1,7 +1,7 @@
 ---
 title: New Builds
 summary: "Custom homes built with hands-on care from slab to handover. [mock]"
-image: ../../src/assets/photos/living-fireplace.webp
+image: ../../src/assets/photos/bedroom.webp
 order: 2
 ---
 

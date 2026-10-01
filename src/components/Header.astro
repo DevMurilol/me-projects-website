@@ -1,6 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
-import Wordmark from "./Wordmark.astro";
+import Logo from "./Logo.astro";
 import Button from "./Button.astro";
 import { getSite } from "../lib/content";
 
@@ -18,7 +18,7 @@ const current = (href: string) => path === href || path.startsWith(`${href}/`);
 <header class="header">
   <div class="container header__bar">
     <a href="/" class="header__brand" aria-label="M.E Projects home">
-      <Wordmark />
+      <Logo height="2.8rem" />
     </a>
 
     <nav class="header__nav" aria-label="Main">
@@ -91,6 +91,8 @@ const current = (href: string) => path === href || path.startsWith(`${href}/`);
     top: 0;
     z-index: var(--z-header);
     padding-top: 0.75rem;
+    /* Stays put while the page underneath cross-fades during navigation. */
+    view-transition-name: site-header;
   }
 
   /* Floating bar, detached from the top edge. Blur only lives here (sticky element). */
@@ -109,8 +111,9 @@ const current = (href: string) => path === href || path.startsWith(`${href}/`);
   }
 
   .header__brand {
+    display: inline-flex;
+    color: var(--heading);
     text-decoration: none;
-    font-size: 1rem;
   }
 
   .header__nav {

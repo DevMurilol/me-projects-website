@@ -1,7 +1,7 @@
 ---
 title: Extensions
 summary: "More room without moving - extensions that blend seamlessly with your home. [mock]"
-image: ../../src/assets/photos/courtyard-dining.webp
+image: ../../src/assets/photos/extension-frame-deck.webp
 order: 1
 ---
 

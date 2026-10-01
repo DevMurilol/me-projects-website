@@ -4,7 +4,7 @@ import "../styles/motion.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import SiteBoard from "../components/SiteBoard.astro";
-import { getSite, getServices, plain } from "../lib/content";
+import { getSite, getServices, isMock, plain } from "../lib/content";
 
 interface Props {
   title: string;
@@ -36,6 +36,7 @@ const jsonLd = {
     addressCountry: "AU",
   },
   areaServed: site.serviceAreas,
+  ...(isMock(site.googleBusinessProfile) ? {} : { hasMap: site.googleBusinessProfile }),
   openingHours: "Mo-Fr 07:00-16:00",
   makesOffer: services.map((s) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: s.data.title } })),
 };

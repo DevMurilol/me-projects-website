@@ -3,6 +3,12 @@ businessName: M.E Projects Pty Ltd
 shortName: M.E Projects
 tagline: "An experienced builder you can trust [mock]"   # from current site hero - confirm
 experience: 20+ years, residential & commercial
+# Home page introduction. Copy from the original Squarespace site.
+intro:
+  heading: Over 20 years’ experience in both residential and commercial projects.
+  text: >-
+    Whether it is creating the dream family home or fitting out a new office, we have the skills and
+    experience to deliver. Our honest and transparent approach will give you confidence with the job in hand.
 abn: 65 640 158 069
 licences:
   - authority: QBCC (QLD)
@@ -46,7 +52,7 @@ consultation:                                          # Q9 - prefers to adverti
 social:                                                # Q26 - left blank
   facebook: "[mock]"
   instagram: "[mock]"
-googleBusinessProfile: "[mock]"                        # Q36 - exists, Mark manages it; need the URL
+googleBusinessProfile: https://maps.app.goo.gl/QVYysWNWSGgneLeNA  # Q36 - Google Maps listing, resolves to "M.E Projects Pty Ltd", Tugun
 
 brand:
   primaryColour: navy                                  # Q28 - "navy blue is our work shirt colour", open to refresh

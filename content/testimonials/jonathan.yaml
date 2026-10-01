@@ -1,0 +1,10 @@
+# Real Google review (supplied 2026-10-01). Keep the text verbatim.
+name: "Jonathan"
+rating: 5
+source: google
+year: "2023"  # approximate, from "x years ago" on Google
+service: home-renovations
+featured: true
+order: 4
+excerpt: "The finishes on the renovations were fantastic. Mark is easy to deal with and he was very good at offering solutions."
+text: "Mark and his team were very professional. The finishes on the renovations were fantastic. Mark is easy to deal with and he was very good at offering solutions. I would highly recommend M.E Projects."

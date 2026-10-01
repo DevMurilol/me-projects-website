@@ -1,46 +1,128 @@
 /* ==========================================================================
    Motion layer (added last, on top of the settled layout).
    - One easing for the whole site: var(--ease).
-   - Hero: one load-in moment, then recedes as the page scrolls over it.
-   - Section blocks ([data-reveal]) rise 32px and fade in, driven by scroll position.
-   - Only opacity and transform. Navigation and forms are never animated.
-   - Base state is always visible: without support (or with reduced motion)
-     the page renders static.
+   - Page changes: native cross-document View Transitions (no JS, still a static MPA).
+     Project and service photos morph into the page they open.
+   - Hero: one orchestrated load-in (headline word by word), then recedes on scroll.
+   - Section blocks rise in; photos settle (scale 1.12 -> 1) as they cross the viewport.
+   - Only opacity and transform (incl. the individual `scale` property).
+   - Navigation and forms are never animated.
+   - Base state is always visible: without support or with reduced motion the page is static.
    ========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* ---------- Hero load-in: copy first, photo settles just after */
-  [data-hero] > * {
-    animation: rise-in 900ms var(--ease) both;
+  /* ---------- Page transitions */
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root) {
+    animation: vt-out 320ms var(--ease) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vt-in 560ms var(--ease) 60ms both;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: 650ms;
+    animation-timing-function: var(--ease);
+  }
+
+  /* Photos that morph between pages keep their crop instead of stretching. */
+  ::view-transition-old(*.photo),
+  ::view-transition-new(*.photo) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    overflow: clip;
+  }
+
+  /* ---------- Hero load-in: headline word by word, then copy, then actions */
+  .split-word > span {
+    animation: word-up 900ms var(--ease) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
   }
 
   [data-hero] > :nth-child(2) {
-    animation-delay: 90ms;
+    animation: rise-in 900ms var(--ease) 380ms both;
   }
 
   [data-hero] > :nth-child(3) {
-    animation-delay: 180ms;
+    animation: rise-in 900ms var(--ease) 480ms both;
   }
 
-  [data-hero-photo] img {
-    animation: settle-in 1200ms var(--ease) 120ms both;
+  [data-hero-media] img {
+    animation: settle-in 1600ms var(--ease) both;
   }
 
   @supports (animation-timeline: scroll()) {
-    /* ---------- Hero recede: tied to the first ~90vh of scroll */
-    [data-hero],
-    [data-hero-photo] {
+    /* ---------- Hero recede: copy dims and drifts, photo moves slower than the page */
+    [data-hero] {
       animation: hero-recede linear both;
       animation-timeline: scroll(root);
       animation-range: 0 90vh;
     }
 
-    /* ---------- Section blocks: in by the time 30% of the journey is covered */
+    [data-hero-media] {
+      animation: media-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+
+    /* ---------- Section blocks */
     [data-reveal] {
       animation: reveal-in linear both;
       animation-timeline: view();
       animation-range: entry 0% cover 30%;
     }
+
+    /* Grid items stagger by scroll position, not time: each starts a little later. */
+    [data-reveal-item] {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--i, 0) * 6%) cover calc(30% + var(--i, 0) * 4%);
+    }
+
+    /* ---------- Photo settle: uses `scale`, so hover zoom (transform) still works */
+    .settle {
+      overflow: clip;
+    }
+
+    .settle img {
+      animation: img-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 50%;
+    }
+  }
+}
+
+/* Reduced motion: no cross-fade, no morph. */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+.split-word {
+  display: inline-block;
+  overflow: clip;
+  /* Room for descenders (g, j, p, y) inside the mask. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+  vertical-align: top;
+}
+
+.split-word > span {
+  display: inline-block;
+}
+
+@keyframes word-up {
+  from {
+    transform: translateY(108%);
+  }
+  to {
+    transform: none;
   }
 }
 
@@ -58,7 +140,7 @@
 @keyframes settle-in {
   from {
     opacity: 0;
-    transform: scale(1.05);
+    transform: scale(1.06);
   }
   to {
     opacity: 1;
@@ -66,8 +148,7 @@
   }
 }
 
-/* Drift down at a slower rate than the scroll, shrink slightly, dim.
-   Input range runs the full 0 -> 90vh so the value never snaps back. */
+/* Input range runs the full 0 -> 90vh so the value never snaps back. */
 @keyframes hero-recede {
   from {
     opacity: 1;
@@ -79,6 +160,15 @@
   }
 }
 
+@keyframes media-drift {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateY(18vh);
+  }
+}
+
 @keyframes reveal-in {
   from {
     opacity: 0;
@@ -87,5 +177,35 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes img-settle {
+  from {
+    scale: 1.12;
+  }
+  to {
+    scale: 1;
+  }
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
   }
 }

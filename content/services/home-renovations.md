@@ -1,7 +1,7 @@
 ---
 title: Home Renovations
 summary: "Whole-home renovations that bring new life to the way you live. [mock]"
-image: ../../src/assets/photos/stair-curve.webp
+image: ../../src/assets/photos/dining-to-courtyard.webp
 order: 5
 ---
 

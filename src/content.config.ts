@@ -25,7 +25,8 @@ const projects = defineCollection({
       date: z.coerce.date(),
       summary: z.string(),
       coverImage: image(),
-      images: z.array(image()).default([]),
+      // Room captions describe what each photo shows (real); the project details may be [mock].
+      gallery: z.array(z.object({ image: image(), caption: z.string().optional() })).default([]),
       beforeImage: image().optional(),
       afterImage: image().optional(),
       featured: z.boolean().default(false),
@@ -33,16 +34,20 @@ const projects = defineCollection({
     }),
 });
 
+// Real Google reviews. `text` is verbatim; `excerpt` is a verbatim sentence from it for tight spaces.
+// Linked to a service (never to a specific project) only when the review names that kind of work.
 const testimonials = defineCollection({
   loader: glob({ pattern: "*.yaml", base: "./content/testimonials" }),
   schema: z.object({
     name: z.string(),
-    location: z.string(),
-    rating: z.number().min(1).max(5).optional(),
-    project: reference("projects").optional(),
-    source: z.string().optional(),
+    rating: z.number().min(1).max(5).default(5),
+    source: z.enum(["google"]).default("google"),
+    year: z.string().optional(),
+    service: reference("services").optional(),
+    featured: z.boolean().default(true),
+    order: z.number().default(99),
+    excerpt: z.string(),
     text: z.string(),
-    mock: z.boolean().default(false),
   }),
 });
 

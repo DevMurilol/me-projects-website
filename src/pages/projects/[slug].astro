@@ -2,7 +2,7 @@
 import { Image, getImage } from "astro:assets";
 import { getEntry, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import { getProjects, getTestimonials, mock, plain, year, type Project } from "../../lib/content";
+import { getProjects, mock, plain, year, type Project } from "../../lib/content";
 
 export async function getStaticPaths() {
   const projects = await getProjects();
@@ -15,49 +15,92 @@ export async function getStaticPaths() {
 const { project, next } = Astro.props as { project: Project; next: Project };
 const { Content } = await render(project);
 const service = await getEntry(project.data.service);
-const review = (await getTestimonials()).find((t) => t.data.project?.id === project.id);
-const alt = plain(project.data.title);
+const title = plain(project.data.title);
+const cover = project.data.coverImage;
+const coverIsWide = cover.width >= 1400 && cover.width > cover.height;
 
-// Full-size URLs for the lightbox (source photos are 750px wide).
-const gallery = await Promise.all(
-  project.data.images.map(async (img, i) => ({
-    img,
-    full: (await getImage({ src: img, width: img.width, format: "webp" })).src,
-    alt: `${alt}, photo ${i + 1}`,
-  })),
+// Photo story. High-res landscapes get a full row; smaller photos are paired; a leftover sits offset.
+type Photo = { image: ImageMetadata; caption?: string; full: string; alt: string; index: number };
+const photos: Photo[] = await Promise.all(
+  project.data.gallery
+    .filter((g) => g.image.src !== cover.src) // the cover is already shown above
+    .map(async (g, index) => ({
+      ...g,
+      index,
+      alt: g.caption ?? `${title}, photo ${index + 1}`,
+      full: (await getImage({ src: g.image, width: Math.min(g.image.width, 2048), format: "webp" })).src,
+    })),
 );
+type Row = { kind: "full" | "pair" | "single"; items: Photo[] };
+const rows: Row[] = [];
+let buffer: Photo[] = [];
+for (const p of photos) {
+  const wide = p.image.width >= 1400 && p.image.width > p.image.height;
+  if (wide) {
+    rows.push({ kind: "full", items: [p] });
+    continue;
+  }
+  buffer.push(p);
+  if (buffer.length === 2) {
+    rows.push({ kind: "pair", items: buffer });
+    buffer = [];
+  }
+}
+if (buffer.length) rows.push({ kind: "single", items: buffer });
+let pairCount = 0;
 ---
 
-<Base title={plain(project.data.title)} description={project.data.summary}>
+<Base title={title} description={project.data.summary}>
   <article>
     <header class="container proj-head">
       <a class="link proj-head__back" href="/projects">All projects</a>
       <h1 set:html={mock(project.data.title)} />
-      <p class="lead" set:html={mock(project.data.summary)} />
       <dl class="proj-meta">
-        <div><dt>Location</dt><dd>{project.data.location}</dd></div>
+        <div><dt>Location</dt><dd set:html={mock(project.data.location)} /></div>
         <div>
           <dt>Service</dt>
           <dd><a href={`/services/${service?.id}`}>{service?.data.title}</a></dd>
         </div>
-        <div><dt>Completed</dt><dd>{year(project.data.date)}</dd></div>
+        <div><dt>Year</dt><dd>{year(project.data.date)}</dd></div>
+        {project.data.gallery.length > 1 && <div><dt>Photos</dt><dd>{project.data.gallery.length}</dd></div>}
       </dl>
     </header>
 
-    <div class="container proj-cover">
-      <div class="frame">
+    <!-- Cover: full width when the photo can carry it, framed otherwise -->
+    <div class:list={["proj-cover", coverIsWide ? "proj-cover--wide" : "container proj-cover--framed"]}>
+      <div class:list={[!coverIsWide && "frame"]}>
         <Image
-          src={project.data.coverImage}
+          src={cover}
           alt={plain(project.data.summary)}
-          widths={[375, 750]}
-          sizes="(max-width: 48rem) 100vw, 60vw"
+          style={`view-transition-name: p-${project.id}; view-transition-class: photo`}
+          widths={coverIsWide ? [768, 1280, 1600] : [375, 750, 1200]}
+          sizes={coverIsWide ? "100vw" : "(max-width: 48rem) 100vw, 50vw"}
           loading="eager"
+          fetchpriority="high"
         />
       </div>
-      <div class="prose proj-story" data-reveal>
-        <Content />
-      </div>
+      {
+        !coverIsWide && (
+          <div class="proj-intro" data-reveal>
+            <p class="proj-intro__lead" set:html={mock(project.data.summary)} />
+            <div class="prose">
+              <Content />
+            </div>
+          </div>
+        )
+      }
     </div>
+
+    {
+      coverIsWide && (
+        <section class="container proj-intro proj-intro--below" data-reveal aria-label="About the project">
+          <p class="proj-intro__lead" set:html={mock(project.data.summary)} />
+          <div class="prose">
+            <Content />
+          </div>
+        </section>
+      )
+    }
 
     {
       project.data.beforeImage && project.data.afterImage && (
@@ -66,11 +109,11 @@ const gallery = await Promise.all(
             <h2 id="ba-heading" class="proj-sub">Before and after</h2>
             <div class="ba" data-reveal>
               <figure>
-                <Image src={project.data.beforeImage} alt={`${alt} during the build`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
+                <Image src={project.data.beforeImage} alt={`${title} during the build`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
                 <figcaption>Before</figcaption>
               </figure>
               <figure>
-                <Image src={project.data.afterImage} alt={`${alt} finished`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
+                <Image src={project.data.afterImage} alt={`${title} finished`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
                 <figcaption>After</figcaption>
               </figure>
             </div>
@@ -80,42 +123,46 @@ const gallery = await Promise.all(
     }
 
     {
-      gallery.length > 0 && (
-        <section class="section" aria-labelledby="gallery-heading">
+      photos.length > 0 && (
+        <section class="section" aria-labelledby="story-heading">
           <div class="container">
-            <h2 id="gallery-heading" class="proj-sub">Photos</h2>
-            <ul class="gallery" data-reveal>
-              {gallery.map((g, i) => (
-                <li>
-                  <button type="button" class="gallery__btn zoom" data-full={g.full} data-alt={g.alt} data-index={i}>
-                    <Image src={g.img} alt={g.alt} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 33vw" class="cover" />
-                    <span class="visually-hidden">Open photo {i + 1} full size</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <h2 id="story-heading" class="proj-sub">{photos.length > 1 ? "Room by room" : "On site"}</h2>
+            <div class="story">
+              {rows.map((row) => {
+                const offset = row.kind === "pair" && pairCount++ % 2 === 1;
+                return (
+                  <div class:list={["story__row", `story__row--${row.kind}`, offset && "story__row--offset"]} data-reveal>
+                    {row.items.map((p) => (
+                      <figure>
+                        <button type="button" class="story__btn zoom settle" data-full={p.full} data-alt={p.alt} data-index={p.index}>
+                          <Image
+                            src={p.image}
+                            alt={p.alt}
+                            widths={row.kind === "full" ? [768, 1280, 1600] : [375, 750]}
+                            sizes={row.kind === "full" ? "(max-width: 80rem) 100vw, 80rem" : "(max-width: 48rem) 100vw, 45vw"}
+                          />
+                          <span class="visually-hidden">Open full size</span>
+                        </button>
+                        {p.caption && <figcaption>{p.caption}</figcaption>}
+                      </figure>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
       )
     }
 
     {
-      review && (
-        <section class="container proj-review" aria-label="Client review">
-          <blockquote>
-            <p set:html={`&ldquo;${mock(review.data.text)}&rdquo;`} />
-          </blockquote>
-          <p class="muted">
-            <span set:html={mock(review.data.name)} />, {review.data.location}
-          </p>
-        </section>
+      next.id !== project.id && (
+        <nav class="container proj-next" aria-label="Next project">
+          <span class="muted">Next project</span>
+          <a href={`/projects/${next.id}`} set:html={mock(next.data.title)} />
+        </nav>
       )
     }
-
-    <nav class="container proj-next" aria-label="Next project">
-      <span class="muted">Next project</span>
-      <a href={`/projects/${next.id}`} set:html={mock(next.data.title)} />
-    </nav>
   </article>
 
   <dialog class="lightbox" aria-label="Photo viewer">
@@ -131,16 +178,28 @@ const gallery = await Promise.all(
 
 <script>
   const dialog = document.querySelector<HTMLDialogElement>(".lightbox");
-  const buttons = [...document.querySelectorAll<HTMLButtonElement>(".gallery__btn")];
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>(".story__btn")].sort(
+    (a, b) => Number(a.dataset.index) - Number(b.dataset.index),
+  );
   if (dialog && buttons.length) {
     const img = dialog.querySelector("img")!;
     const pos = dialog.querySelector<HTMLElement>("[data-pos]")!;
+    const single = buttons.length === 1;
+    dialog.querySelectorAll<HTMLElement>("[data-prev], [data-next]").forEach((b) => (b.hidden = single));
     let index = 0;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
     const show = (i: number) => {
       index = (i + buttons.length) % buttons.length;
       img.src = buttons[index].dataset.full!;
       img.alt = buttons[index].dataset.alt!;
-      pos.textContent = `${index + 1} of ${buttons.length}`;
+      pos.textContent = single ? "" : `${index + 1} of ${buttons.length}`;
+      // Each photo fades up as it swaps in.
+      if (!calm.matches) {
+        img.animate([{ opacity: 0, transform: "scale(0.985)" }, { opacity: 1, transform: "none" }], {
+          duration: 420,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        });
+      }
     };
     buttons.forEach((b, i) =>
       b.addEventListener("click", () => {
@@ -164,12 +223,12 @@ const gallery = await Promise.all(
   .proj-head {
     display: grid;
     justify-items: start;
-    gap: 1.25rem;
+    gap: 1.5rem;
     padding-block: clamp(3rem, 7vw, 6rem) clamp(2rem, 4vw, 3rem);
   }
 
   .proj-head h1 {
-    max-width: 20ch;
+    max-width: 18ch;
   }
 
   .proj-head__back {
@@ -180,7 +239,7 @@ const gallery = await Promise.all(
     display: flex;
     flex-wrap: wrap;
     gap: 1rem 3rem;
-    margin: 0.5rem 0 0;
+    margin: 0;
     padding-top: 1.25rem;
     border-top: 1px solid var(--line);
   }
@@ -201,24 +260,57 @@ const gallery = await Promise.all(
     text-underline-offset: 0.25em;
   }
 
-  .proj-cover {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-    gap: clamp(2rem, 6vw, 6rem);
-    align-items: end;
-    padding-bottom: var(--section);
+  /* ---------- Cover */
+  .proj-cover--wide {
+    width: min(100%, 96rem);
+    margin-inline: auto;
+    padding-inline: clamp(0rem, 2vw, 1.5rem);
   }
 
-  .proj-story {
+  .proj-cover--wide :global(img) {
+    width: 100%;
+    max-height: 82svh;
+    object-fit: cover;
+  }
+
+  .proj-cover--framed {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: end;
+  }
+
+  .proj-intro {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .proj-intro--below {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    padding-block: clamp(3rem, 6vw, 5rem) 0;
+  }
+
+  .proj-intro__lead {
+    color: var(--heading);
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 48;
+    font-size: var(--fs-lg);
+    line-height: 1.3;
+    max-width: 26ch;
+  }
+
+  .proj-intro .prose {
     font-size: var(--fs-md);
-    line-height: 1.55;
+    line-height: 1.6;
   }
 
   .proj-sub {
-    font-size: var(--fs-lg);
-    margin-bottom: 2rem;
+    font-size: var(--fs-xl);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
   }
 
+  /* ---------- Before / after */
   .ba {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -237,67 +329,83 @@ const gallery = await Promise.all(
     color: var(--heading);
   }
 
-  .gallery {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  /* ---------- Photo story */
+  .story {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-    gap: 1rem;
+    gap: clamp(3rem, 7vw, 6rem);
   }
 
-  .gallery__btn {
+  .story figure {
+    margin: 0;
+  }
+
+  .story figcaption {
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .story__btn {
     display: block;
     width: 100%;
     padding: 0;
     border: 0;
-    aspect-ratio: 4 / 3;
     overflow: hidden;
     background: var(--surface);
     cursor: zoom-in;
   }
 
-  .proj-review {
-    padding-block: 0 var(--section);
+  .story__btn :global(img) {
+    width: 100%;
   }
 
-  .proj-review blockquote {
-    margin: 0 0 1rem;
-    max-width: 34ch;
-    color: var(--heading);
-    font-size: var(--fs-lg);
-    font-stretch: 112%;
-    font-weight: 520;
-    line-height: 1.3;
+  .story__row--pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 3vw, 2.5rem);
+    align-items: start;
   }
 
+  /* Every other pair drops its second photo for rhythm. */
+  .story__row--offset figure:nth-child(2) {
+    margin-top: clamp(0rem, 10vw, 8rem);
+  }
+
+  .story__row--single {
+    width: min(100%, 36rem);
+    margin-left: auto;
+  }
+
+  /* ---------- Review / next */
   .proj-next {
     display: grid;
     gap: 0.5rem;
+    margin-top: var(--section);
     padding-block: 3rem 0;
     border-top: 1px solid var(--line);
   }
 
   .proj-next a {
     color: var(--heading);
-    font-size: var(--fs-xl);
-    font-stretch: 125%;
-    font-weight: 680;
-    letter-spacing: -0.018em;
-    line-height: 1.06;
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 72;
+    font-size: var(--fs-2xl);
+    font-weight: 430;
+    letter-spacing: -0.012em;
+    line-height: 1.04;
     text-decoration: none;
   }
 
   .proj-next a:hover {
     text-decoration: underline;
     text-decoration-thickness: 2px;
-    text-underline-offset: 0.15em;
+    text-underline-offset: 0.12em;
   }
 
-  /* Lightbox */
+  /* ---------- Lightbox */
   .lightbox {
-    width: min(92vw, 60rem);
-    max-height: 92dvh;
+    width: min(94vw, 76rem);
+    max-height: 94dvh;
     padding: 0;
     border: 0;
     border-radius: var(--radius);
@@ -306,12 +414,53 @@ const gallery = await Promise.all(
   }
 
   .lightbox::backdrop {
-    background: rgb(11 22 38 / 0.86);
+    background: rgb(11 22 38 / 0.9);
+  }
+
+  /* Open / close: fade and scale, including the exit (allow-discrete keeps it rendered while it animates). */
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox,
+    .lightbox::backdrop {
+      transition:
+        opacity 380ms var(--ease),
+        transform 480ms var(--ease),
+        overlay 480ms allow-discrete,
+        display 480ms allow-discrete;
+    }
+
+    .lightbox {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+
+    .lightbox[open] {
+      opacity: 1;
+      transform: none;
+    }
+
+    .lightbox::backdrop {
+      opacity: 0;
+    }
+
+    .lightbox[open]::backdrop {
+      opacity: 1;
+    }
+
+    @starting-style {
+      .lightbox[open] {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      .lightbox[open]::backdrop {
+        opacity: 0;
+      }
+    }
   }
 
   .lightbox img {
     width: 100%;
-    max-height: calc(92dvh - 4rem);
+    max-height: calc(94dvh - 4rem);
     object-fit: contain;
   }
 
@@ -325,6 +474,10 @@ const gallery = await Promise.all(
   .lightbox__bar span {
     margin-inline: auto;
     font-size: var(--fs-sm);
+  }
+
+  .lightbox__bar [data-close] {
+    margin-left: auto;
   }
 
   .lightbox__bar button {
@@ -344,9 +497,22 @@ const gallery = await Promise.all(
   }
 
   @media (max-width: 52rem) {
-    .proj-cover,
+    .proj-cover--framed,
+    .proj-intro--below,
     .ba {
       grid-template-columns: 1fr;
+    }
+
+    .story__row--pair {
+      grid-template-columns: 1fr;
+    }
+
+    .story__row--offset figure:nth-child(2) {
+      margin-top: 0;
+    }
+
+    .story__row--single {
+      width: 100%;
     }
   }
 </style>

@@ -1,0 +1,9 @@
+# Real Google review (supplied 2026-10-01). Keep the text verbatim.
+name: "Pamela F."
+rating: 5
+source: google
+year: "2023"  # approximate, from "x years ago" on Google
+featured: true
+order: 7
+excerpt: "It was a delight when Mark responded very quickly to give professional advice."
+text: "It was a delight when Mark responded very quickly to give professional advice. This support to make an informed decision about a project gave peace of mind. Many thanks."

@@ -1,0 +1,9 @@
+# Real Google review (supplied 2026-10-01). Keep the text verbatim.
+name: "Carol E."
+rating: 5
+source: google
+year: "2021"  # approximate, from "x years ago" on Google
+featured: true
+order: 6
+excerpt: "He helped me understand the intricacies of the job and efficiently completed the work with attention to detail."
+text: "Mark was a polite, respectful and responsive tradesman. He helped me understand the intricacies of the job and efficiently completed the work with attention to detail. Thank you!"

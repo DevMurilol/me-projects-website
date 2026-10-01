@@ -1,0 +1,25 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  rating: number;
+}
+const { rating } = Astro.props;
+---
+
+<span class="stars" role="img" aria-label={`Rated ${rating} out of 5`}>
+  {Array.from({ length: 5 }, (_, i) => <Icon name={i < rating ? "ph:star-fill" : "ph:star-light"} aria-hidden="true" />)}
+</span>
+
+<style>
+  .stars {
+    display: inline-flex;
+    gap: 0.15rem;
+    color: var(--heading);
+  }
+
+  .stars svg {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+</style>

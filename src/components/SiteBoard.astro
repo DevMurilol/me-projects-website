@@ -2,6 +2,7 @@
 // The "site board": the sign a builder puts out the front of every job.
 // Carries the consultation CTA plus the licence numbers QLD law requires on advertising.
 import Button from "./Button.astro";
+import Logo from "./Logo.astro";
 import { getSite, mock, serviceAreaSentence } from "../lib/content";
 
 interface Props {
@@ -16,6 +17,7 @@ const nsw = site.licences.find((l) => l.authority.startsWith("NSW"));
 <section class="board-wrap" aria-labelledby="board-heading">
   <div class="container">
     <div class="board" data-reveal>
+      <Logo height="clamp(2.75rem, 5vw, 4rem)" class="board__logo" />
       <div class="board__main">
         <div class="board__pitch">
           <h2 id="board-heading">{heading}</h2>
@@ -78,6 +80,10 @@ const nsw = site.licences.find((l) => l.authority.startsWith("NSW"));
     color: var(--board-text);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
+  }
+
+  .board__logo {
+    color: var(--board-text);
   }
 
   .board__main {

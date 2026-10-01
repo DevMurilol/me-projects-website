@@ -7,27 +7,28 @@ interface Props {
   project: Project;
   ratio?: "natural" | "4x3" | "3x4";
   headingLevel?: "h2" | "h3";
+  /** Position in its grid: the card reveals on its own, staggered by scroll position. */
+  reveal?: number;
 }
-const { project, ratio = "4x3", headingLevel: Heading = "h3" } = Astro.props;
+const { project, ratio = "4x3", headingLevel: Heading = "h3", reveal } = Astro.props;
 const service = await getEntry(project.data.service);
 ---
 
-<article class="pcard">
+<article class="pcard" data-reveal-item={reveal !== undefined ? "" : undefined} style={reveal !== undefined ? `--i: ${reveal % 3}` : undefined}>
   <a href={`/projects/${project.id}`} class="pcard__link">
-    <div class:list={["pcard__img zoom", ratio !== "natural" && `ratio ratio--${ratio}`]}>
+    <div class:list={["pcard__img zoom settle", ratio !== "natural" && `ratio ratio--${ratio}`]}>
       <Image
         src={project.data.coverImage}
         alt={plain(project.data.summary)}
-        widths={[375, 750]}
-        sizes="(max-width: 48rem) 100vw, 33vw"
+        style={`view-transition-name: p-${project.id}; view-transition-class: photo`}
+        widths={[375, 750, 1100]}
+        sizes="(max-width: 48rem) 100vw, 40vw"
         class:list={[ratio !== "natural" && "cover"]}
       />
     </div>
     <Heading class="pcard__title" set:html={mock(project.data.title)} />
   </a>
-  <p class="pcard__meta">
-    {project.data.location}, {service?.data.title}, {year(project.data.date)}
-  </p>
+  <p class="pcard__meta" set:html={`${mock(project.data.location)}, ${service?.data.title}, ${year(project.data.date)}`} />
 </article>
 
 <style>
