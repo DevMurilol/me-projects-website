@@ -1,0 +1,5 @@
+# Permanent redirects from the old Squarespace URLs (Cloudflare reads this file).
+# /about and /contact keep the same paths.
+/what-we-do  /services  301
+/gallery     /projects  301
+/cart        /          301

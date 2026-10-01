@@ -7,9 +7,5 @@ export default defineConfig({
   site: "https://www.me-projects.com.au",
   trailingSlash: "never",
   integrations: [sitemap(), icon()],
-  // Redirects from the current Squarespace URLs (PLANNING.md section 7).
-  redirects: {
-    "/what-we-do": "/services",
-    "/gallery": "/projects",
-  },
+  // 301s from the old Squarespace URLs live in public/_redirects (served by Cloudflare).
 });
