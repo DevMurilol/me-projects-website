@@ -20,7 +20,7 @@ const reviews = await getTestimonials();
     </div>
     <div class="about-story__text" data-reveal>
       <p class="about-story__approach">{about.approach}</p>
-      <p class="muted" set:html={mock(about.story)} />
+      {about.story && <p class="muted">{about.story}</p>}
     </div>
   </section>
 
@@ -49,11 +49,6 @@ const reviews = await getTestimonials();
             <li>
               <span class="team__name">{m.name}</span>
               <span class="muted">{m.role}</span>
-              {isMock(m.photo) && (
-                <span class="muted">
-                  Photo <mark class="mock">mock</mark>
-                </span>
-              )}
             </li>
           ))
         }

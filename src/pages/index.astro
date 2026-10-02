@@ -15,7 +15,6 @@ import {
   mock,
   plain,
   serviceAreaSentence,
-  year,
 } from "../lib/content";
 
 const site = await getSite();
@@ -46,8 +45,8 @@ const steps = [
     text: "A paid consultation on site. We look at your block, plans and budget and give you straight advice.",
   },
   {
-    title: "Design and approvals",
-    text: "We work with your designer, or recommend one, and sort out the approvals the job needs. [mock]",
+    title: "Design and planning",
+    text: "We work through the plans, budget and timing with you before any work starts on site.",
   },
   {
     title: "Build",
@@ -186,7 +185,7 @@ const steps = [
         <h2 id="flagship-heading" set:html={mock(flagship.data.title)} />
         <p class="lead" set:html={mock(flagship.data.summary)} />
         <dl class="meta">
-          <div><dt>Location</dt><dd set:html={mock(flagship.data.location)} /></div>
+          {flagship.data.location && <div><dt>Location</dt><dd>{flagship.data.location}</dd></div>}
           <div><dt>Service</dt><dd>{flagshipService?.data.title}</dd></div>
           <div><dt>Photos</dt><dd>{flagship.data.gallery.length}</dd></div>
         </dl>

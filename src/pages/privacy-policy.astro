@@ -4,10 +4,11 @@ import PageHead from "../components/PageHead.astro";
 import { getSite } from "../lib/content";
 
 const site = await getSite();
+const updated = "October 2026";
 ---
 
 <Base title="Privacy policy" description={`How ${site.businessName} collects and uses personal information.`} board={false}>
-  <PageHead title="Privacy policy" lead="Draft for review before launch. [mock]" />
+  <PageHead title="Privacy policy" lead={`Last updated ${updated}.`} />
 
   <section class="container prose policy">
     <p>
@@ -16,8 +17,8 @@ const site = await getSite();
     </p>
     <h2>What we collect</h2>
     <p>
-      When you send an enquiry we collect your name, phone number, email address, suburb, project details, budget and
-      timeframe, and any photos or plans you choose to upload.
+      When you contact us by phone or email we collect the details you give us, such as your name, phone number, email
+      address, suburb, project details, budget and timeframe, and any photos or plans you send.
     </p>
     <h2>How we use it</h2>
     <p>
@@ -29,8 +30,8 @@ const site = await getSite();
       Only with people who help us deliver your project, such as designers, certifiers and trades, and with service
       providers that host our website and email. They may store data outside Australia.
     </p>
-    <h2>Website analytics</h2>
-    <p>We use privacy-friendly analytics that don't use cookies or identify individual visitors.</p>
+    <h2>This website</h2>
+    <p>This website doesn't use advertising or tracking cookies.</p>
     <h2>Access and corrections</h2>
     <p>
       You can ask to see or correct the information we hold about you, or make a complaint, by emailing

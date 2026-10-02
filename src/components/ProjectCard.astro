@@ -28,7 +28,9 @@ const service = await getEntry(project.data.service);
     </div>
     <Heading class="pcard__title" set:html={mock(project.data.title)} />
   </a>
-  <p class="pcard__meta" set:html={`${mock(project.data.location)}, ${service?.data.title}, ${year(project.data.date)}`} />
+  <p class="pcard__meta">
+    {[project.data.location, service?.data.title, project.data.date && year(project.data.date)].filter(Boolean).join(", ")}
+  </p>
 </article>
 
 <style>

@@ -56,12 +56,12 @@ let pairCount = 0;
       <a class="link proj-head__back" href="/projects">All projects</a>
       <h1 set:html={mock(project.data.title)} />
       <dl class="proj-meta">
-        <div><dt>Location</dt><dd set:html={mock(project.data.location)} /></div>
+        {project.data.location && <div><dt>Location</dt><dd>{project.data.location}</dd></div>}
         <div>
           <dt>Service</dt>
           <dd><a href={`/services/${service?.id}`}>{service?.data.title}</a></dd>
         </div>
-        <div><dt>Year</dt><dd>{year(project.data.date)}</dd></div>
+        {project.data.date && <div><dt>Year</dt><dd>{year(project.data.date)}</dd></div>}
         {project.data.gallery.length > 1 && <div><dt>Photos</dt><dd>{project.data.gallery.length}</dd></div>}
       </dl>
     </header>

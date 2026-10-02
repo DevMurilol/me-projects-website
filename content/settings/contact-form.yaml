@@ -1,4 +1,7 @@
 # Q24 - fields Mark wants from every lead. Enquiries go to settings/site.yaml -> enquiryEmail.
+# enabled: false until the form endpoint (Cloudflare + Resend + Turnstile) is connected.
+# While disabled, /contact shows phone + a pre-filled email built from these same fields.
+enabled: false
 fields:
   - { name: name, label: Name, type: text, required: true }
   - { name: phone, label: Phone, type: tel, required: true }
@@ -6,7 +9,7 @@ fields:
   - { name: suburb, label: Suburb, type: text, required: true }
   - { name: projectType, label: Type of project, type: select, required: true, optionsFrom: services }
   - { name: budget, label: Approximate budget, type: select, required: false,
-      options: ["Under $50k [mock]", "$50k - $150k [mock]", "$150k - $500k [mock]", "$500k+ [mock]"] }
+      options: ["Under $50k", "$50k - $150k", "$150k - $500k", "$500k+"] }
   - { name: timeframe, label: Preferred timeframe, type: select, required: false,
       options: ["As soon as possible", "Within 3 months", "3-6 months", "6+ months", "Just planning"] }
   - { name: files, label: Photos or plans, type: file, required: false, accept: "image/*,.pdf", maxFiles: 5 }

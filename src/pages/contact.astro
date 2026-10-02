@@ -2,13 +2,26 @@
 import Base from "../layouts/Base.astro";
 import PageHead from "../components/PageHead.astro";
 import Button from "../components/Button.astro";
-import { getContactForm, getServices, getSite, mock, serviceAreaSentence } from "../lib/content";
+import { getContactForm, getServices, getSite, serviceAreaSentence } from "../lib/content";
 
 const site = await getSite();
 const form = await getContactForm();
 const services = await getServices();
 const optionsFor = (f: (typeof form.fields)[number]) =>
   f.optionsFrom === "services" ? services.map((s) => s.data.title) : (f.options ?? []);
+
+// Until the form endpoint is live, enquiries go by email, pre-filled with the same fields.
+const emailFields = form.fields.filter((f) => !["name", "email", "message", "files"].includes(f.name));
+const emailBody = [
+  "Name:",
+  ...emailFields.map((f) => `${f.label}:`),
+  "",
+  "About the project:",
+  "",
+  "",
+  "(Photos or plans are welcome as attachments.)",
+].join("\n");
+const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Project enquiry")}&body=${encodeURIComponent(emailBody)}`;
 ---
 
 <Base
@@ -22,6 +35,23 @@ const optionsFor = (f: (typeof form.fields)[number]) =>
   />
 
   <section class="container contact">
+    {!form.enabled && (
+      <div class="enquiry enquiry--email">
+        <h2 class="enquiry__title">Send us your project details</h2>
+        <p class="muted">
+          The email below opens with everything we need already listed. Fill in what you know and attach any photos or
+          plans.
+        </p>
+        <ul class="enquiry__list">
+          {form.fields.filter((f) => f.name !== "message").map((f) => <li>{f.label}</li>)}
+        </ul>
+        <div class="enquiry__actions">
+          <Button href={mailto}>Email your project details</Button>
+          <a class="link" href={`tel:${site.phoneHref}`}>Or call {site.phone}</a>
+        </div>
+      </div>
+    )}
+    {form.enabled && (
     <form class="enquiry" novalidate data-enquiry>
       {
         form.fields.map((f) => (
@@ -69,14 +99,14 @@ const optionsFor = (f: (typeof form.fields)[number]) =>
         ))
       }
       <p class="form-note muted">
-        Budget options are placeholders <mark class="mock">mock</mark>. Your details are only used to reply to your
-        enquiry. See our <a class="link" href="/privacy-policy">privacy policy</a>.
+        Your details are only used to reply to your enquiry. See our <a class="link" href="/privacy-policy">privacy policy</a>.
       </p>
       <div class="field--wide form-actions">
         <Button type="submit">Send enquiry</Button>
         <p class="form-status" role="status" aria-live="polite" data-status></p>
       </div>
     </form>
+    )}
 
     <aside class="direct">
       <h2 class="direct__title">Prefer to talk?</h2>
@@ -85,7 +115,7 @@ const optionsFor = (f: (typeof form.fields)[number]) =>
       <dl class="direct__list">
         <div>
           <dt>Hours</dt>
-          {site.hours.map((h) => <dd set:html={mock(`${h.days}, ${h.time}`)} />)}
+          {site.hours.map((h) => <dd>{h.days ? `${h.days}, ${h.time}` : h.time}</dd>)}
         </div>
         <div>
           <dt>Where we work</dt>
@@ -159,6 +189,50 @@ const optionsFor = (f: (typeof form.fields)[number]) =>
     padding: clamp(1.25rem, 3vw, 2.5rem);
     background: var(--surface);
     border-radius: var(--radius);
+  }
+
+  .enquiry--email {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-content: start;
+  }
+
+  .enquiry__title {
+    font-size: var(--fs-lg);
+  }
+
+  .enquiry__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 1.5rem;
+    color: var(--heading);
+    font-weight: 560;
+  }
+
+  .enquiry__list li {
+    padding-left: 1.1rem;
+    position: relative;
+  }
+
+  .enquiry__list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.4rem;
+    height: 0.4rem;
+    background: var(--heading);
+  }
+
+  .enquiry__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+    margin-top: 0.5rem;
   }
 
   .field--wide {

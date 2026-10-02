@@ -1,9 +1,7 @@
 ---
-title: "Courtyard Home Renovation [mock]"
+title: "Courtyard Home Renovation"
 service: home-renovations
-location: "[mock]"
-date: 2016-11-01
-summary: "A whole-home renovation that opens every living space to a private courtyard. [mock]"
+summary: "A whole-home renovation that opens the living spaces to a private courtyard."
 coverImage: ../../src/assets/photos/dining-to-courtyard.webp
 gallery:
   - image: ../../src/assets/photos/outdoor-kitchen-servery.webp
@@ -29,9 +27,9 @@ gallery:
   - image: ../../src/assets/photos/bedroom.webp
     caption: "Main bedroom with balcony"
 featured: true
-mock: true
+order: 1
 ---
 
-The owners wanted a home that felt open, light and connected to the garden. We reworked the ground floor around a new kitchen and dining space, opened the rear with full-height bi-fold doors, and built an outdoor kitchen with a servery window onto the deck.
+A renovation that runs through the whole house. The open-plan dining room and kitchen look straight out to the courtyard through full-height bi-fold doors, and an outdoor kitchen opens onto the deck through a servery window.
 
-Upstairs, a new curved staircase with solid timber treads leads to a bright main bedroom with its own balcony. [mock]
+Inside, a curved staircase with solid timber treads leads up to a bright main bedroom with its own balcony, with a new bathroom and laundry along the way.

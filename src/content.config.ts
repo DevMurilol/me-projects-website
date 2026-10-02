@@ -2,7 +2,7 @@ import { defineCollection, reference } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
-// Content lives in /content (see MOCKS.md). Values ending in "[mock]" are placeholders.
+// Content lives in /content (see MOCKS.md). "[mock]" marks a placeholder; check:mocks blocks it from launch.
 
 const services = defineCollection({
   loader: glob({ pattern: "*.md", base: "./content/services" }),
@@ -21,11 +21,13 @@ const projects = defineCollection({
     z.object({
       title: z.string(),
       service: reference("services"),
-      location: z.string(),
-      date: z.coerce.date(),
+      // Optional: shown only once confirmed by the client.
+      location: z.string().optional(),
+      date: z.coerce.date().optional(),
+      order: z.number().default(99),
       summary: z.string(),
       coverImage: image(),
-      // Room captions describe what each photo shows (real); the project details may be [mock].
+      // Room captions describe what each photo shows.
       gallery: z.array(z.object({ image: image(), caption: z.string().optional() })).default([]),
       beforeImage: image().optional(),
       afterImage: image().optional(),

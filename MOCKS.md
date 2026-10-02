@@ -1,34 +1,45 @@
-# Mock content register
+# Content status
 
-`/content` mixes **real data** (current site + client briefing of 2026-09-29, see [docs/02-briefing-answers.md](docs/02-briefing-answers.md)) with **placeholders** for what the client hasn't sent yet.
+**Launch-safe since 2026-10-02.** The site went live early so M.E Projects stays online after the Squarespace subscription ends. Everything on the site is either confirmed by the client or a neutral description of what the photos show. Anything not yet confirmed is **left out, not invented**.
 
-## Convention
+Sources: the original Squarespace site, the client briefing of 2026-09-29 ([docs/02-briefing-answers.md](docs/02-briefing-answers.md)), client photos, the logo file and the Google reviews supplied on 2026-10-01.
 
-| Case | Flag |
-|---|---|
-| A value is invented | Ends with **`[mock]`** — shows up on the page on purpose, so nobody mistakes it for real |
-| A whole entry is invented (project, testimonial) | `mock: true` **and** `[mock]` on its title/text |
+## The mock guard
 
-When real data arrives: replace the value and delete the `[mock]` tag (and `mock: true`).
+`npm run build` runs `scripts/check-mocks.mjs` after `astro build`. It fails the build if it finds:
 
-```bash
-node scripts/check-mocks.mjs   # exits 1 while any [mock] / mock: true remains — must pass before launch (Phase 6 QA)
-```
+- a value tagged `[mock]` or an entry with `mock: true` in `/content`;
+- a mock marker in any built page in `dist/` (catches `[mock]` typed straight into a template).
 
-> **Testimonials are real** Google reviews (supplied 2026-10-01). Text is verbatim; the home page shows a verbatim sentence (`excerpt`). Names are shown as first name + surname initial. Reviews are linked to a service only when the review names that kind of work, never to a specific project.
+On Cloudflare **preview branches** (`CF_PAGES_BRANCH` is not `main`) it only warns, so placeholders can be reviewed on a preview URL. On **main** (production) the deploy fails instead of publishing placeholder content.
 
-## What's still mock
+To try new content before it's confirmed: work on a branch, tag the value with `[mock]` (it shows highlighted on the preview), and remove the tag before merging.
 
-| File | Mock | Waiting on |
+## Left out until confirmed
+
+| What | Where it goes | Waiting on |
 |---|---|---|
-| `settings/site.yaml` | tagline, QBCC class, working days, consultation price, social links | Q5, Q18, Q3, Q9, Q26 |
-| `settings/about.yaml` | headline, story, team photos | Call with Mark / photos |
-| `settings/contact-form.yaml` | budget ranges | Mark to confirm ranges |
-| `services/*.md` | summaries and copy (Home Renovations body is real copy from the current site — mentions kitchens, review) | Copy approval |
-| `projects/*.md` (3) | One per real photo set. Titles, **locations**, years and copy are invented; photo captions describe what each photo shows. The courtyard house may be outside the Gold Coast (sandstone, 2016): confirm before giving it a suburb | Q12-16 |
-| `faq/faq.yaml` | consultation, timeframes, staying home | Mark to confirm |
-| Images | Real client photos, grouped by job from what they show. Service images are illustrative (e.g. New Builds uses a bedroom from the courtyard renovation) | Confirm with Mark |
+| Working days (only "7:00am - 4:00pm" is shown) | `settings/site.yaml` → `hours[].days` | Q3 |
+| QBCC licence class | `settings/site.yaml` → `licences[0].class` | Q18 |
+| Consultation price | `settings/site.yaml` → `consultation.price` | Q9 |
+| Facebook / Instagram links | `settings/site.yaml` → `social` | Q26 |
+| Mark's own story for the About page | `settings/about.yaml` → `story` | Call with Mark |
+| Team photos | `settings/about.yaml` → `team[].photo` | Photos |
+| Project suburbs and years | `projects/*.md` → `location`, `date` | Q12-16. The courtyard house may be outside the Gold Coast (sandstone walls, 2016 photos) |
+| More projects and photos per job | `projects/` | Photos (Q12-17) |
+| FAQ: typical timeframes, staying home during works | `faq/faq.yaml` | Mark to confirm |
+| Online enquiry form | `settings/contact-form.yaml` → `enabled: true` once the endpoint (Cloudflare + Resend + Turnstile) is connected. Until then /contact shows phone + a pre-filled email | Dev work |
 
-## Already real (from the briefing)
+## Written by us, to review with Mark
 
-Logo (PNG) · home intro copy (original site) · 8 Google reviews + Google Maps listing · ABN · QBCC 15139741 · NSW 473008C · fully insured · warranty per QBCC · team (Mark Nelson, Brad Fleischfresser) · differentiator copy · service list & priority · service areas · hours 7:00–4:00 · enquiry email · contact form fields · navy as brand colour · show suburb only.
+These are not invented facts, but they are our wording and should get his OK:
+
+- **Service descriptions** (`services/*.md`): kept modest, no capabilities he hasn't confirmed. Home Renovations is the original site copy with "kitchen revamp" and "outdoor living area" swapped for "a new bathroom, an extension" (he no longer wants kitchen or outdoor-living work, Q8).
+- **Project descriptions** (`projects/*.md`): describe only what the photos show. No client story, suburb or year.
+- **Service photos** are illustrative (e.g. New Builds uses the main bedroom from the courtyard renovation; Decks uses the courtyard).
+- **About values** are condensed from his own answer to Q5.
+- **Privacy policy**: standard wording for enquiries by phone and email; update when the form goes live.
+
+## Already real
+
+Logo (PNG) · home intro and tagline (original site) · 8 Google reviews (verbatim; first name + initial) + Google Maps listing · ABN · QBCC 15139741 · NSW 473008C · fully insured · warranty per QBCC · team (Mark Nelson, Brad Fleischfresser) · differentiator copy (Q5) · service list and priority · service areas · hours 7:00-4:00 · enquiry email · enquiry fields · navy as brand colour · suburb only (no street address shown).

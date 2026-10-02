@@ -1,5 +1,5 @@
-# Source: current site + client briefing (2026-09-29). "[mock]" = still a placeholder.
-headline: "Building on the southern Gold Coast for over 20 years [mock]"
+# Source: current site + client briefing (2026-09-29). Launch-safe: no invented story.
+headline: Building on the southern Gold Coast for over 20 years
 intro: >-
   Renovating can be overwhelming and stressful. At M.E Projects, we understand
   this and aim to transform the experience into an enjoyable and hassle-free
@@ -10,9 +10,7 @@ approach: >-
   approach, giving clients direct communication and close attention throughout
   the job. We focus on quality workmanship, reliable delivery and solutions that
   suit the project rather than a one-size-fits-all approach.
-story: >-
-  Mark started M.E Projects with a simple idea: treat every home like it's our
-  own. Two decades later we're still a small, hands-on team based in Tugun. [mock]
+# story: add Mark's own story here after the next call (left out rather than invented).
 values:                                                # condensed from Q5
   - title: Direct communication
     text: You deal with the people building your project, from first meeting to handover.
@@ -25,10 +23,8 @@ values:                                                # condensed from Q5
 team:                                                  # Q4
   - name: Mark Nelson
     role: Director
-    photo: "[mock]"
   - name: Brad Fleischfresser
     role: Supervisor / Carpenter
-    photo: "[mock]"
 credentials:                                           # Q18-21
   - label: QBCC Licence
     value: "15139741"

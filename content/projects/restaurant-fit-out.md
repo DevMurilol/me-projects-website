@@ -1,9 +1,7 @@
 ---
-title: "Restaurant Fit-out [mock]"
+title: "Restaurant Fit-out"
 service: commercial-fit-outs
-location: "[mock]"
-date: 2025-08-01
-summary: "Built-in timber banquettes and bench seating for a busy dining room. [mock]"
+summary: "Built-in timber banquettes and bench seating for a dining room."
 coverImage: ../../src/assets/photos/banquette-finished.webp
 gallery:
   - image: ../../src/assets/photos/banquette-finished.webp
@@ -13,9 +11,9 @@ gallery:
 beforeImage: ../../src/assets/photos/banquette-build.webp
 afterImage: ../../src/assets/photos/banquette-finished.webp
 featured: true
-mock: true
+order: 2
 ---
 
-The owners needed more seating without losing the relaxed feel of the room. We designed and built curved timber banquettes against a feature stone wall, plus bench seating along the bi-fold windows.
+Curved timber banquettes built against a stone feature wall, with upholstered seats and backs, plus long bench seating along the bi-fold windows.
 
-We worked around trading hours so the restaurant could stay open for most of the job. [mock]
+The before photo shows the banquettes at frame stage, before the timber cladding and upholstery went on.

@@ -5,7 +5,7 @@ Business website for M.E Projects Pty Ltd (builder, Tugun QLD). Replaces the Squ
 - **Stack:** Astro 7 (static), plain CSS, Newsreader + Archivo variable fonts, Phosphor icons via `astro-icon`.
 - **Content:** Markdown/YAML in [`content/`](content/), loaded by content collections ([`src/content.config.ts`](src/content.config.ts)). The client doesn't edit the site; we do.
 - **Design system:** [DESIGN.md](DESIGN.md).
-- **Placeholders:** anything tagged `[mock]` is invented and shows highlighted on the page. See [MOCKS.md](MOCKS.md).
+- **Content status:** live with confirmed content only; unconfirmed items are left out. `npm run build` blocks placeholder (`[mock]`) content on main. See [MOCKS.md](MOCKS.md).
 - **Plan and decisions:** [PLANNING.md](PLANNING.md).
 
 ## Commands
@@ -13,7 +13,7 @@ Business website for M.E Projects Pty Ltd (builder, Tugun QLD). Replaces the Squ
 ```bash
 npm install
 npm run dev          # http://localhost:4321
-npm run build        # static output in dist/
+npm run build        # static output in dist/, then the mock guard
 npm run check:mocks  # fails while any [mock] content remains (must pass before launch)
 ```
 

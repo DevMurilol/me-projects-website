@@ -17,9 +17,9 @@ export interface SiteSettings {
   enquiryEmail: string;
   preferredContact: string[];
   address: { street: string; suburb: string; state: string; postcode: string; showStreet: boolean };
-  hours: { days: string; time: string }[];
+  hours: { days?: string; time: string }[];
   serviceAreas: string[];
-  consultation: { paid: boolean; summary: string; price: string };
+  consultation: { paid: boolean; summary: string; price?: string };
   social: Record<string, string>;
   googleBusinessProfile: string;
 }
@@ -28,9 +28,9 @@ export interface AboutSettings {
   headline: string;
   intro: string;
   approach: string;
-  story: string;
+  story?: string;
   values: { title: string; text: string }[];
-  team: { name: string; role: string; photo: string }[];
+  team: { name: string; role: string; photo?: string }[];
   credentials: { label: string; value: string }[];
 }
 
@@ -53,7 +53,7 @@ async function settings<T>(id: string): Promise<T> {
 
 export const getSite = () => settings<SiteSettings>("site");
 export const getAbout = () => settings<AboutSettings>("about");
-export const getContactForm = () => settings<{ fields: FormField[] }>("contact-form");
+export const getContactForm = () => settings<{ enabled?: boolean; fields: FormField[] }>("contact-form");
 
 export async function getServices() {
   const all = await getCollection("services");
@@ -62,7 +62,7 @@ export async function getServices() {
 
 export async function getProjects() {
   const all = await getCollection("projects");
-  return all.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return all.sort((a, b) => a.data.order - b.data.order);
 }
 
 export async function getFaq() {

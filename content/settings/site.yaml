@@ -1,7 +1,8 @@
-# Source: current site + client briefing (2026-09-29). "[mock]" = still a placeholder.
+# Source: current site + client briefing (2026-09-29). Launch-safe: only confirmed values.
+# Anything still unknown is left out rather than invented (see MOCKS.md).
 businessName: M.E Projects Pty Ltd
 shortName: M.E Projects
-tagline: "An experienced builder you can trust [mock]"   # from current site hero - confirm
+tagline: An experienced builder you can trust          # hero line of the original Squarespace site
 experience: 20+ years, residential & commercial
 # Home page introduction. Copy from the original Squarespace site.
 intro:
@@ -12,8 +13,7 @@ intro:
 abn: 65 640 158 069
 licences:
   - authority: QBCC (QLD)
-    number: "15139741"
-    class: "[mock]"                                    # Q18 - licence class not given
+    number: "15139741"                                 # licence class not given (Q18): not shown
   - authority: NSW Fair Trading
     number: 473008C
 insurance: Fully insured
@@ -32,9 +32,8 @@ address:
   postcode: "4224"
   showStreet: false                                    # Q1 - show suburb/region only
 
-hours:                                                 # Q3 - "7:00 - 4:00"; days not given
-  - days: "Monday - Friday [mock]"
-    time: 7:00am - 4:00pm
+hours:                                                 # Q3 - "7:00 - 4:00"; working days not given, so not shown
+  - time: 7:00am - 4:00pm
 
 serviceAreas:                                          # Q10 - "all of the above"
   - Tugun
@@ -46,12 +45,9 @@ serviceAreas:                                          # Q10 - "all of the above
 
 consultation:                                          # Q9 - prefers to advertise paid consultation before design
   paid: true
-  summary: Paid design consultation before any plans are drawn up.
-  price: "Price on request [mock]"
+  summary: Paid design consultation before any plans are drawn up.   # price not given: not shown
 
-social:                                                # Q26 - left blank
-  facebook: "[mock]"
-  instagram: "[mock]"
+social: {}                                             # Q26 - left blank; add URLs here when Mark sends them
 googleBusinessProfile: https://maps.app.goo.gl/QVYysWNWSGgneLeNA  # Q36 - Google Maps listing, resolves to "M.E Projects Pty Ltd", Tugun
 
 brand:
