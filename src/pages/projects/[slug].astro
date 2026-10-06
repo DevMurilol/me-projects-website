@@ -17,7 +17,9 @@ const { Content } = await render(project);
 const service = await getEntry(project.data.service);
 const title = plain(project.data.title);
 const cover = project.data.coverImage;
-const coverIsWide = cover.width >= 1400 && cover.width > cover.height;
+// "Wide" means a real landscape (4:3 or wider-ish), not a near-square phone crop like 1440x1439.
+const isWide = (img: ImageMetadata) => img.width >= 1400 && img.width >= img.height * 1.2;
+const coverIsWide = isWide(cover);
 
 // Photo story. High-res landscapes get a full row; smaller photos are paired; a leftover sits offset.
 type Photo = { image: ImageMetadata; caption?: string; full: string; alt: string; index: number };
@@ -35,8 +37,7 @@ type Row = { kind: "full" | "pair" | "single"; items: Photo[] };
 const rows: Row[] = [];
 let buffer: Photo[] = [];
 for (const p of photos) {
-  const wide = p.image.width >= 1400 && p.image.width > p.image.height;
-  if (wide) {
+  if (isWide(p.image)) {
     rows.push({ kind: "full", items: [p] });
     continue;
   }
@@ -109,11 +110,11 @@ let pairCount = 0;
             <h2 id="ba-heading" class="proj-sub">Before and after</h2>
             <div class="ba" data-reveal>
               <figure>
-                <Image src={project.data.beforeImage} alt={`${title} during the build`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
+                <Image src={project.data.beforeImage} alt={`${title}, before`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
                 <figcaption>Before</figcaption>
               </figure>
               <figure>
-                <Image src={project.data.afterImage} alt={`${title} finished`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
+                <Image src={project.data.afterImage} alt={`${title}, after`} widths={[375, 750]} sizes="(max-width: 48rem) 100vw, 50vw" />
                 <figcaption>After</figcaption>
               </figure>
             </div>
@@ -126,7 +127,7 @@ let pairCount = 0;
       photos.length > 0 && (
         <section class="section" aria-labelledby="story-heading">
           <div class="container">
-            <h2 id="story-heading" class="proj-sub">{photos.length > 1 ? "Room by room" : "On site"}</h2>
+            <h2 id="story-heading" class="proj-sub">{project.data.galleryTitle ?? (photos.length > 1 ? "In detail" : "On site")}</h2>
             <div class="story">
               {rows.map((row) => {
                 const offset = row.kind === "pair" && pairCount++ % 2 === 1;

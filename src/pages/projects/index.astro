@@ -28,7 +28,7 @@ const services = (await getServices()).filter((s) => projects.some((p) => p.data
       {
         projects.map((p, i) => (
           <div class="grid__item" data-service={p.data.service.id} style={`view-transition-name: card-${p.id}`}>
-            <ProjectCard project={p} ratio="natural" headingLevel="h2" reveal={i} />
+            <ProjectCard project={p} ratio="3x4" headingLevel="h2" reveal={i} />
           </div>
         ))
       }
@@ -100,16 +100,25 @@ const services = (await getServices()).filter((s) => projects.some((p) => p.data
     color: var(--on-accent);
   }
 
-  /* Masonry by columns: photos keep their natural proportions. */
+  /* Row by row, so the order in content/projects reads left to right, and filtering never leaves
+     uneven columns. One 3:4 crop for every cover, the same as the home page cards. */
   .grid {
-    columns: 3 18rem;
-    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
     padding-bottom: 2rem;
   }
 
-  .grid__item {
-    break-inside: avoid;
-    margin-bottom: clamp(2rem, 4vw, 3rem);
+  @media (max-width: 60rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .grid__item[hidden] {

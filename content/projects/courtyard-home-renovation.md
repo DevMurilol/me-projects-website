@@ -26,6 +26,7 @@ gallery:
     caption: "Kitchen with garden outlook"
   - image: ../../src/assets/photos/bedroom.webp
     caption: "Main bedroom with balcony"
+galleryTitle: "Room by room"
 featured: true
 order: 1
 ---

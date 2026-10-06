@@ -1,7 +1,7 @@
 ---
 title: Decks
-summary: "Timber decks built for the Gold Coast climate."
-image: ../../src/assets/photos/courtyard-dining.webp
+summary: "Hardwood and composite decks built for the Gold Coast climate."
+image: ../../src/assets/photos/pool-alfresco.webp
 order: 3
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Bathrooms
 summary: "Bathrooms and ensuites built properly, from the waterproofing up."
-image: ../../src/assets/photos/bathroom-vanity.webp
+image: ../../src/assets/photos/blush-bathroom-basin.webp
 order: 4
 ---
 

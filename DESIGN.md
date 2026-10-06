@@ -43,7 +43,8 @@ Newsreader was chosen over Cormorant Garamond after rendering both on the hero p
 - Container 80rem, gutter `clamp(1rem, 4vw, 2.5rem)`, section spacing `clamp(5rem, 9vw, 8.5rem)`.
 - Floating sticky header (64px), blur only there.
 - Home uses a different layout family per section: full-bleed hero, credentials row, 6-cell bento, editorial spread (flagship project), offset project pair, statement, numbered process (a real sequence), scroll-snap reviews, site board.
-- Project pages are photo stories: photos 1400px+ wide get a full row, smaller ones are paired (every other pair offset), a leftover sits offset. Layout adapts automatically as better photos arrive.
+- /projects is a 3-column grid read row by row (2 on tablet, 1 on phone), every cover cropped 3:4 like the home cards, so the order in `content/projects` is the order on the page and filtering never leaves uneven columns.
+- Project pages are photo stories: real landscapes (1400px+ wide and at least 1.2:1) get a full row, everything else is paired (every other pair offset), a leftover sits offset. Layout adapts automatically as better photos arrive. The story heading comes from `galleryTitle` (e.g. "Room by room", "From frame to finish"), defaulting to "In detail".
 
 ## Motion (`src/styles/motion.css`)
 

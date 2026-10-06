@@ -29,6 +29,8 @@ const projects = defineCollection({
       coverImage: image(),
       // Room captions describe what each photo shows.
       gallery: z.array(z.object({ image: image(), caption: z.string().optional() })).default([]),
+      // Heading over the photo story, e.g. "Room by room" or "From frame to finish".
+      galleryTitle: z.string().optional(),
       beforeImage: image().optional(),
       afterImage: image().optional(),
       featured: z.boolean().default(false),
