@@ -9,3 +9,6 @@ client-images/
 .claude
 docs/
 .playwright-mcp/
+.wrangler/
+.dev.vars*
+!.dev.vars.example

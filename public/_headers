@@ -1,7 +1,5 @@
-# Keep the Cloudflare preview address out of search engines.
-# The real domain (www.me-projects.com.au) is not matched by this rule.
-https://:project.pages.dev/*
-  X-Robots-Tag: noindex
-
-https://:version.:project.pages.dev/*
+# Keep the Cloudflare preview addresses out of search engines.
+# The real domain (www.me-projects.com.au) is not matched by these rules.
+# workers.dev covers the Worker and its preview URLs (<version>-<worker>.<account>.workers.dev).
+https://:worker.:account.workers.dev/*
   X-Robots-Tag: noindex

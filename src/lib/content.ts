@@ -53,7 +53,8 @@ async function settings<T>(id: string): Promise<T> {
 
 export const getSite = () => settings<SiteSettings>("site");
 export const getAbout = () => settings<AboutSettings>("about");
-export const getContactForm = () => settings<{ enabled?: boolean; fields: FormField[] }>("contact-form");
+export const getContactForm = () =>
+  settings<{ enabled?: boolean; turnstileSiteKey?: string; fields: FormField[] }>("contact-form");
 
 export async function getServices() {
   const all = await getCollection("services");

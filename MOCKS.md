@@ -28,7 +28,6 @@ To try new content before it's confirmed: work on a branch, tag the value with `
 | Project suburbs and years | `projects/*.md` → `location`, `date` | Q12-16. The courtyard house may be outside the Gold Coast (sandstone walls, 2016 photos) |
 | Project names and details beyond the photos (suburb, year, scope, the school's name) | `projects/*.md` | Call with Mark |
 | FAQ: typical timeframes, staying home during works | `faq/faq.yaml` | Mark to confirm |
-| Online enquiry form | `settings/contact-form.yaml` → `enabled: true` once the endpoint (Cloudflare + Resend + Turnstile) is connected. Until then /contact shows phone + a pre-filled email | Dev work |
 
 ## Written by us, to review with Mark
 
@@ -43,7 +42,8 @@ These are not invented facts, but they are our wording and should get his OK:
   - Left out: one 590px pool deck photo (too small) and a duplicate file.
 - **Service photos**: Decks and Bathrooms now use their own projects (pool deck & alfresco, blush tile bathroom). New Builds still uses the main bedroom from the courtyard renovation (no new build photos yet). The Decks summary now says "hardwood and composite", as the photos show both.
 - **About values** are condensed from his own answer to Q5.
-- **Privacy policy**: standard wording for enquiries by phone and email; update when the form goes live.
+- **Privacy policy**: standard wording for enquiries by phone and email. When the form is enabled it adds a section on the form, Resend, Cloudflare and Turnstile (overseas providers).
+- **Enquiry emails** (`worker/email.ts`): the confirmation promises only what /contact already says ("we'll be in touch to arrange a time on site"), no response time.
 
 ## Already real
 

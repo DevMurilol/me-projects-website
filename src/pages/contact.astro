@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import PageHead from "../components/PageHead.astro";
 import Button from "../components/Button.astro";
 import { getContactForm, getServices, getSite, serviceAreaSentence } from "../lib/content";
+import { ENQUIRY_ENDPOINT, MAX_TOTAL_BYTES, TURNSTILE_ACTION } from "../lib/enquiry-config";
 
 const site = await getSite();
 const form = await getContactForm();
@@ -10,7 +11,13 @@ const services = await getServices();
 const optionsFor = (f: (typeof form.fields)[number]) =>
   f.optionsFrom === "services" ? services.map((s) => s.data.title) : (f.options ?? []);
 
-// Until the form endpoint is live, enquiries go by email, pre-filled with the same fields.
+// Public Turnstile site key. PUBLIC_TURNSTILE_SITE_KEY (.env, local only) can swap in Cloudflare's testing key.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || form.turnstileSiteKey;
+if (form.enabled && !siteKey) {
+  throw new Error("contact-form.yaml: the form is enabled but turnstileSiteKey is empty. Add the site key or set enabled: false.");
+}
+
+// While the form is off, enquiries go by email, pre-filled with the same fields.
 const emailFields = form.fields.filter((f) => !["name", "email", "message", "files"].includes(f.name));
 const emailBody = [
   "Name:",
@@ -52,7 +59,17 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
       </div>
     )}
     {form.enabled && (
-    <form class="enquiry" novalidate data-enquiry>
+    <div class="enquiry-wrap">
+    <form
+      class="enquiry"
+      novalidate
+      data-enquiry
+      data-endpoint={ENQUIRY_ENDPOINT}
+      data-sitekey={siteKey}
+      data-action={TURNSTILE_ACTION}
+      data-max-total={MAX_TOTAL_BYTES}
+      data-phone={site.phone}
+    >
       {
         form.fields.map((f) => (
           <div class:list={["field", (f.type === "textarea" || f.type === "file") && "field--wide"]}>
@@ -68,7 +85,7 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
                 ))}
               </select>
             ) : f.type === "textarea" ? (
-              <textarea class="textarea" id={`f-${f.name}`} name={f.name} rows="5" required={f.required} aria-describedby={`e-${f.name}`} />
+              <textarea class="textarea" id={`f-${f.name}`} name={f.name} rows="5" maxlength="5000" required={f.required} aria-describedby={`e-${f.name}`} />
             ) : f.type === "file" ? (
               <>
                 <input
@@ -81,7 +98,9 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
                   data-max={f.maxFiles}
                   aria-describedby={`h-${f.name} e-${f.name}`}
                 />
-                <span class="hint" id={`h-${f.name}`}>Up to {f.maxFiles} photos or PDF plans.</span>
+                <span class="hint" id={`h-${f.name}`}>
+                  Up to {f.maxFiles} photos or PDF plans, 20 MB in total. Large photos are resized before sending.
+                </span>
               </>
             ) : (
               <input
@@ -90,6 +109,7 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
                 id={`f-${f.name}`}
                 name={f.name}
                 required={f.required}
+                maxlength={f.type === "email" ? 254 : f.type === "tel" ? 30 : 120}
                 autocomplete={f.type === "email" ? "email" : f.type === "tel" ? "tel" : f.name === "name" ? "name" : undefined}
                 aria-describedby={`e-${f.name}`}
               />
@@ -98,6 +118,12 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
           </div>
         ))
       }
+      <!-- Honeypot: hidden from people and screen readers. A value here means a bot. -->
+      <div class="hp" aria-hidden="true">
+        <label for="f-company">Company</label>
+        <input id="f-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+      <div class="field--wide turnstile" data-turnstile></div>
       <p class="form-note muted">
         Your details are only used to reply to your enquiry. See our <a class="link" href="/privacy-policy">privacy policy</a>.
       </p>
@@ -106,6 +132,13 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
         <p class="form-status" role="status" aria-live="polite" data-status></p>
       </div>
     </form>
+    <div class="enquiry enquiry--done" data-done hidden tabindex="-1" aria-labelledby="done-heading">
+      <h2 class="enquiry__title" id="done-heading">Thanks<span data-done-name></span>. Your enquiry is on its way.</h2>
+      <p>We'll be in touch to talk it through and arrange a time on site.</p>
+      <p class="muted" data-done-copy hidden>We've emailed a copy to <strong data-done-email></strong>.</p>
+      <p>If it's urgent, call <a class="link" href={`tel:${site.phoneHref}`}>{site.phone}</a>.</p>
+    </div>
+    </div>
     )}
 
     <aside class="direct">
@@ -131,45 +164,177 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
 </Base>
 
 <script>
-  // Validation only. The endpoint (Cloudflare + Resend + Turnstile, see PLANNING.md) is not connected yet.
+  // Sends the enquiry to the Worker (worker/index.ts), which checks Turnstile and emails it through Resend.
+  // The same checks run again on the server; these only save a round trip.
+  interface Turnstile {
+    render(el: HTMLElement, options: Record<string, unknown>): string;
+    reset(widgetId: string): void;
+    getResponse(widgetId: string): string | undefined;
+  }
+  type Field = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
   const form = document.querySelector<HTMLFormElement>("[data-enquiry]");
   const status = document.querySelector<HTMLElement>("[data-status]");
+  const done = document.querySelector<HTMLElement>("[data-done]");
+  const win = window as unknown as { turnstile?: Turnstile; onTurnstileLoad?: () => void };
+  let widgetId: string | undefined;
+  let sending = false;
 
-  const messageFor = (el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) => {
+  const errorFor = (el: Field) => document.getElementById(`e-${el.name}`);
+  const fields = () => [...(form?.querySelectorAll<Field>("input, select, textarea") ?? [])].filter((el) => errorFor(el));
+
+  const messageFor = (el: Field) => {
     if (el instanceof HTMLInputElement && el.type === "file") {
       const max = Number(el.dataset.max || 5);
       return el.files && el.files.length > max ? `Choose up to ${max} files.` : "";
     }
     if (el.validity.valueMissing) return "This field is required.";
     if (el.validity.typeMismatch && el.type === "email") return "Enter an email address like name@example.com.";
+    if (el.type === "tel" && el.value.trim() && (/[^\d\s()+-]/.test(el.value) || el.value.replace(/\D/g, "").length < 8)) {
+      return "Enter a phone number we can call.";
+    }
     return "";
   };
 
-  form?.addEventListener("submit", (e) => {
+  const showError = (el: Field, msg: string) => {
+    const error = errorFor(el);
+    if (error) error.textContent = msg;
+    el.setAttribute("aria-invalid", msg ? "true" : "false");
+  };
+
+  // Phone photos are often 3-8 MB. Resizing to 2400px keeps them sharp and well under the email limit.
+  async function shrink(file: File): Promise<File> {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size <= 1.5 * 1024 * 1024) return file;
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+      const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return file;
+      ctx.fillStyle = "#fff"; // transparent PNGs become white, not black, as JPEG
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], file.name.replace(/\.(jpe?g|png|webp)$/i, "") + ".jpg", { type: "image/jpeg" });
+    } catch {
+      return file; // the server accepts the original if it fits
+    }
+  }
+
+  if (form) {
+    // Explicit render, so the single-use token can be reset after each attempt.
+    const box = form.querySelector<HTMLElement>("[data-turnstile]");
+    win.onTurnstileLoad = () => {
+      if (!box || !win.turnstile) return;
+      widgetId = win.turnstile.render(box, {
+        sitekey: form.dataset.sitekey,
+        action: form.dataset.action,
+        theme: "auto",
+        size: "flexible",
+      });
+    };
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad";
+    script.async = true;
+    document.head.append(script);
+  }
+
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    let first: HTMLElement | null = null;
-    form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea").forEach((el) => {
+    if (sending || !status) return;
+
+    let first: Field | null = null;
+    for (const el of fields()) {
       const msg = messageFor(el);
-      const error = document.getElementById(`e-${el.name}`);
-      if (error) error.textContent = msg;
-      el.setAttribute("aria-invalid", msg ? "true" : "false");
+      showError(el, msg);
       if (msg && !first) first = el;
-    });
+    }
     if (first) {
-      (first as HTMLElement).focus();
-      if (status) status.textContent = "Check the highlighted fields.";
+      first.focus();
+      status.textContent = "Check the highlighted fields.";
       return;
     }
-    if (status) status.textContent = "This preview isn't connected yet. Please call or email us directly.";
+
+    const token = widgetId !== undefined ? win.turnstile?.getResponse(widgetId) : undefined;
+    if (!token) {
+      status.textContent = "Please wait for the security check above to finish, then send again.";
+      return;
+    }
+
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const fallback = `Please call ${form.dataset.phone} or try again.`;
+    sending = true;
+    button?.setAttribute("disabled", "");
+    form.setAttribute("aria-busy", "true");
+    status.textContent = "Sending your enquiry...";
+
+    let sent = false;
+    let attempted = false;
+    try {
+      const data = new FormData(form);
+      const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
+      if (fileInput?.files?.length) {
+        status.textContent = "Preparing your photos...";
+        const files = await Promise.all([...fileInput.files].map(shrink));
+        if (files.reduce((sum, f) => sum + f.size, 0) > Number(form.dataset.maxTotal)) {
+          showError(fileInput, "Files must be under 20 MB in total.");
+          fileInput.focus();
+          status.textContent = "Check the highlighted fields.";
+          return;
+        }
+        data.delete(fileInput.name);
+        files.forEach((f) => data.append(fileInput.name, f));
+        status.textContent = "Sending your enquiry...";
+      }
+
+      attempted = true;
+      const response = await fetch(form.dataset.endpoint!, { method: "POST", body: data });
+      const result: { ok?: boolean; error?: string; fields?: Record<string, string>; confirmationSent?: boolean } =
+        await response.json().catch(() => ({}));
+
+      if (response.ok && result.ok) {
+        sent = true;
+        status.textContent = "";
+        const name = String(data.get("name") ?? "").trim().split(/\s+/)[0];
+        const email = String(data.get("email") ?? "").trim();
+        done!.querySelector("[data-done-name]")!.textContent = name ? `, ${name}` : "";
+        done!.querySelector("[data-done-email]")!.textContent = email;
+        done!.querySelector<HTMLElement>("[data-done-copy]")!.hidden = !result.confirmationSent;
+        form.hidden = true;
+        done!.hidden = false;
+        done!.focus();
+        done!.scrollIntoView({ block: "start", behavior: "smooth" });
+        return;
+      }
+
+      if (result.fields) {
+        let firstBad: Field | null = null;
+        for (const el of fields()) {
+          const msg = result.fields[el.name] ?? "";
+          showError(el, msg);
+          if (msg && !firstBad) firstBad = el;
+        }
+        firstBad?.focus();
+      }
+      status.textContent = result.error ?? `Something went wrong. ${fallback}`;
+    } catch {
+      status.textContent = `We couldn't reach our server. Check your connection, or ${fallback.charAt(0).toLowerCase()}${fallback.slice(1)}`;
+    } finally {
+      sending = false;
+      button?.removeAttribute("disabled");
+      form.removeAttribute("aria-busy");
+      // Tokens are single-use: get a fresh one before the next attempt.
+      if (attempted && !sent && widgetId !== undefined) win.turnstile?.reset(widgetId);
+    }
   });
 
   form?.addEventListener("input", (e) => {
-    const el = e.target as HTMLInputElement;
-    if (el.getAttribute("aria-invalid") === "true" && !messageFor(el)) {
-      el.setAttribute("aria-invalid", "false");
-      const error = document.getElementById(`e-${el.name}`);
-      if (error) error.textContent = "";
-    }
+    const el = e.target as Field;
+    if (el.getAttribute("aria-invalid") === "true" && !messageFor(el)) showError(el, "");
   });
 </script>
 
@@ -191,10 +356,24 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
     border-radius: var(--radius);
   }
 
-  .enquiry--email {
+  /* display: grid above would otherwise override the hidden attribute (form after sending, thank-you before). */
+  .enquiry[hidden] {
+    display: none;
+  }
+
+  .enquiry[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  .enquiry--email,
+  .enquiry--done {
     grid-template-columns: 1fr;
     gap: 1.25rem;
     align-content: start;
+  }
+
+  .enquiry--done:focus {
+    outline: none;
   }
 
   .enquiry__title {
@@ -260,6 +439,19 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
     cursor: pointer;
   }
 
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* Reserve the widget's height so the button doesn't jump when it loads. */
+  .turnstile {
+    min-height: 65px;
+  }
+
   .form-note {
     grid-column: 1 / -1;
     font-size: var(--fs-sm);
@@ -270,6 +462,11 @@ const mailto = `mailto:${site.enquiryEmail}?subject=${encodeURIComponent("Projec
     flex-wrap: wrap;
     align-items: center;
     gap: 1rem 1.5rem;
+  }
+
+  .form-actions :global(button[disabled]) {
+    opacity: 0.6;
+    cursor: progress;
   }
 
   .form-status {

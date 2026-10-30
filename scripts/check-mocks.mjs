@@ -1,7 +1,8 @@
 // Fails (exit 1) while any placeholder content remains: values tagged "[mock]" or entries
 // flagged `mock: true` in /content, and any mock marker in the built pages (dist/).
-// Runs after every `npm run build`. On Cloudflare preview branches it only warns, so
-// placeholders can be reviewed on a preview URL but never reach production (main).
+// Runs after every `npm run build`. On Cloudflare preview branches (Workers Builds sets
+// WORKERS_CI_BRANCH; Pages set CF_PAGES_BRANCH) it only warns, so placeholders can be reviewed on a
+// preview URL but never reach production (main).
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -46,7 +47,7 @@ if (hasDist) {
 
 if (found.length) {
   console.error(`✗ ${found.length} file(s) still contain mock content:\n  ` + found.join("\n  "));
-  const branch = process.env.CF_PAGES_BRANCH;
+  const branch = process.env.WORKERS_CI_BRANCH || process.env.CF_PAGES_BRANCH;
   if (branch && branch !== "main") {
     console.warn(`Preview branch "${branch}": allowed here, but must be fixed before merging to main.`);
     process.exit(0);

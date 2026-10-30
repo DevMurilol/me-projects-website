@@ -22,8 +22,8 @@ warranty: As per QBCC guidelines
 contactName: Mark Nelson
 phone: 0451 241 400
 phoneHref: "+61451241400"
-email: mark@me-projects.com.au
-enquiryEmail: mark@me-projects.com.au                  # Q23
+email: mark@me-projects.com.au                         # public; also the sender of form emails (must stay @me-projects.com.au, verified in Resend)
+enquiryEmail: mark@me-projects.com.au                  # Q23 - where form enquiries go. Any address works
 preferredContact: [phone, email]                       # Q25
 address:
   street: 453A Golden Four Drive                       # kept for schema.org / Google only

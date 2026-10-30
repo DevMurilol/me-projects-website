@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Must be the exact name of the Worker in the Cloudflare dashboard (Workers & Pages). Workers
+  // Builds refuses to deploy when they differ, and `wrangler secret put` would target a different Worker.
+  "name": "me-projects-website",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Astro builds /about/index.html with trailingSlash "never": serve it at /about and redirect /about/ there.
+    "html_handling": "drop-trailing-slash",
+    "not_found_handling": "404-page",
+    // Only the API wakes the Worker. Every page, image and file is served as a static asset.
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    // Where the enquiry form may be submitted from (checked against Turnstile's siteverify).
+    // Never add localhost here: local testing uses .dev.vars instead.
+    "TURNSTILE_HOSTNAMES": "me-projects.com.au,www.me-projects.com.au"
+  }
+  // Secrets are not stored here. Set them on the Worker (dashboard > Settings > Variables and
+  // Secrets, type "Secret"): RESEND_API_KEY and TURNSTILE_SECRET. Local values go in .dev.vars.
+}

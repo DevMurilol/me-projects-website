@@ -1,0 +1,15 @@
+# Copy to .dev.vars (gitignored) for `npm run dev:worker`. Wrangler reads it locally instead of the
+# Worker's dashboard secrets. Never put production values here that you wouldn't want on disk.
+
+# Cloudflare's documented always-pass Turnstile testing secret. Pair it with the testing site key in .env.
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+# Testing keys report the hostname "example.com" (production allows only the real domains).
+TURNSTILE_HOSTNAMES=example.com
+
+# Your Resend API key. Create one at resend.com > API Keys (Sending access is enough).
+RESEND_API_KEY=
+# Your own inbox, so test leads don't reach Mark. Emails are sent from the verified domain.
+ENQUIRY_TO=
+# Only for a Resend account where me-projects.com.au isn't verified: Resend's test sender, which
+# only delivers to that account's login email (use it as ENQUIRY_TO and as the "customer" email).
+# RESEND_FROM=M.E Projects (test) <onboarding@resend.dev>

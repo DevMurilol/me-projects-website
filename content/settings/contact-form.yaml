@@ -1,7 +1,12 @@
 # Q24 - fields Mark wants from every lead. Enquiries go to settings/site.yaml -> enquiryEmail.
-# enabled: false until the form endpoint (Cloudflare + Resend + Turnstile) is connected.
-# While disabled, /contact shows phone + a pre-filled email built from these same fields.
-enabled: false
+# The form posts to the Worker (worker/index.ts): Turnstile check, lead to Mark through Resend
+# (photos attached), then a confirmation to the customer. The Worker validates against these
+# same fields, so names, options and required flags only need changing here.
+# enabled: false shows phone + a pre-filled email instead. Turn it on once README > "Enquiry form"
+# is done (Resend domain verified, Worker secrets set); the build fails if enabled without a site key.
+enabled: true
+# Public Turnstile site key (dashboard > Turnstile). Safe to commit; the secret lives on the Worker.
+turnstileSiteKey: "0x4AAAAAAFsJ3nEazztL-fZj"
 fields:
   - { name: name, label: Name, type: text, required: true }
   - { name: phone, label: Phone, type: tel, required: true }
